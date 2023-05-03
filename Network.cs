@@ -1708,7 +1708,7 @@ namespace SLN
         }
 
 
-        //prova
+
         /// <summary>
         /// Simulates the network for testing (logging the results for STDP synapses)
         /// </summary>
