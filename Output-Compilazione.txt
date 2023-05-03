@@ -1,0 +1,9 @@
+------ Inizio compilazione: Progetto: SLN, Configurazione: Debug Any CPU ------
+Project file contains ToolsVersion="4.0", which is not supported by this version of MSBuild. Treating the project as if it had ToolsVersion="3.5".
+C:\Windows\Microsoft.NET\Framework\v3.5\Csc.exe /noconfig /nowarn:1701,1702 /errorreport:prompt /warn:4 /define:DEBUG;TRACE /reference:C:\Windows\Microsoft.NET\Framework\v2.0.50727\System.dll /debug+ /debug:full /optimize- /out:obj\Debug\SLN.dll /target:library AltNeuron.cs Constants.cs FakeNeuron.cs Features.cs FeedbackSynapses.cs LayerNumbers.cs Layers.cs ConditioningLayer.cs Network.cs NetworkInput.cs Neuron.cs NeuronLoggerStruct.cs Program.cs Properties\AssemblyInfo.cs SpikeList.cs SpikingNeuron.cs StateLogger.cs Synapse.cs SynapseLoggerStruct.cs SynapseSaver.cs SynapseSTDP.cs WinnerCluster.cs
+D:\Marco\Tesi\20 - Programma con StateLogger delle Sinapsi STDP\Layers.cs(248,45): avviso CS0168: La variabile 'ex' è dichiarata ma non è mai stata utilizzata
+D:\Marco\Tesi\20 - Programma con StateLogger delle Sinapsi STDP\WinnerCluster.cs(40,30): avviso CS0168: La variabile 'e' è dichiarata ma non è mai stata utilizzata
+
+Compilazione completata: 0 errori, 2 avvisi
+SLN -> D:\Marco\Tesi\20 - Programma con StateLogger delle Sinapsi STDP\bin\Debug\SLN.dll
+========== Compilazione: 1 completate o aggiornate, 0 non riuscite, 0 ignorate ==========
