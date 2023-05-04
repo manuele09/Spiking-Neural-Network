@@ -12,7 +12,7 @@ namespace SLN
 	{
 		private LinkedList<NeuronLoggerStruct> _neuronLog;
 		private LinkedList<SynapseLoggerStruct> _synapseLog;
-        private LinkedList<NeuronMorrisLecarLoggerStruct> _neuronMorrisLecarLog;
+        private LinkedList<NeuronLoggerStruct> _neuronMorrisLecarLog;
 
 		private StreamWriter _neuronSw;
 		private StreamWriter _synapseSw;
@@ -97,11 +97,11 @@ namespace SLN
             if (_isEnabledNMorrisLecar)
             {
                 _neuronSwMorrisLecar = new StreamWriter(neuronMorrisPath);
-                _neuronMorrisLecarLog = new LinkedList<NeuronMorrisLecarLoggerStruct>();
+                _neuronMorrisLecarLog = new LinkedList<NeuronLoggerStruct>();
 
                 _neuronSwMorrisLecar.WriteLine("#Log started at " + DateTime.Now);
 
-                _neuronSwMorrisLecar.WriteLine(NeuronMorrisLecarLoggerStruct.printHeader());
+                _neuronSwMorrisLecar.WriteLine(NeuronLoggerStruct.printHeader());
             }
 
             if (Constants.ENABLE_OUTPUT)
@@ -196,10 +196,10 @@ namespace SLN
         /// <param name="j">The column of the neuron</param>
         /// <param name="layer">The layer the neuron belongs to</param>
         /// <param name="neuron">The neuron to be logged</param>
-        internal void logNeuronMorrisLecar(int step, int i, int j, LayerNumbers layer, NeuronMorrisLecar neuron)
+        internal void logNeuronMorrisLecar(int step, int i, int j, LayerNumbers layer, Neuron neuron)
         {
             if (_isEnabledNMorrisLecar)
-                _neuronMorrisLecarLog.AddLast(new NeuronMorrisLecarLoggerStruct(step, i, j, layer, neuron));
+                _neuronMorrisLecarLog.AddLast(new NeuronLoggerStruct(step, i, j, layer, neuron));
         }
 
         /// <summary>
@@ -210,10 +210,10 @@ namespace SLN
         /// <param name="j">The column of the neuron</param>
         /// <param name="layer">The layer the neuron belongs to</param>
         /// <param name="neuron">The neuron to be logged</param>
-        internal void logNeuronMorrisLecar(int simNumber, int step, int i, int j, LayerNumbers layer, NeuronMorrisLecar neuron)
+        internal void logNeuronMorrisLecar(int simNumber, int step, int i, int j, LayerNumbers layer, Neuron neuron)
         {
             if (_isEnabledNMorrisLecar)
-                _neuronMorrisLecarLog.AddLast(new NeuronMorrisLecarLoggerStruct(simNumber, step, i, j, layer, neuron));
+                _neuronMorrisLecarLog.AddLast(new NeuronLoggerStruct(simNumber, step, i, j, layer, neuron));
         }
 
         /// <summary>
@@ -221,10 +221,10 @@ namespace SLN
         /// </summary>
         /// <param name="step">The step of simulation</param>
         /// <param name="neuron">The neuron to be logged</param>
-        internal void logNeuronMorrisLecar(int step, NeuronMorrisLecar neuron)
+        internal void logNeuronMorrisLecar(int step, Neuron neuron)
         {
             if (_isEnabledNMorrisLecar)
-                _neuronMorrisLecarLog.AddLast(new NeuronMorrisLecarLoggerStruct(step, neuron));
+                _neuronMorrisLecarLog.AddLast(new NeuronLoggerStruct(step, neuron));
         }
 
         /// <summary>
@@ -232,10 +232,10 @@ namespace SLN
         /// </summary>
         /// <param name="step">The step of simulation</param>
         /// <param name="neuron">The neuron to be logged</param>
-        internal void logNeuronMorrisLecar(int simNumber, int step, NeuronMorrisLecar neuron)
+        internal void logNeuronMorrisLecar(int simNumber, int step, Neuron neuron)
         {
             if (_isEnabledNMorrisLecar)
-                _neuronMorrisLecarLog.AddLast(new NeuronMorrisLecarLoggerStruct(simNumber, step, neuron));
+                _neuronMorrisLecarLog.AddLast(new NeuronLoggerStruct(simNumber, step, neuron));
         }
 
 		/// <summary>
@@ -283,7 +283,7 @@ namespace SLN
 
             if (_isEnabledNMorrisLecar) {
 
-                foreach (NeuronMorrisLecarLoggerStruct nls in _neuronMorrisLecarLog)
+                foreach (NeuronLoggerStruct nls in _neuronMorrisLecarLog)
                     _neuronSwMorrisLecar.WriteLine(nls.ToString());
             }
 

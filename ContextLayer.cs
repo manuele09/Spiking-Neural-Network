@@ -109,7 +109,7 @@ namespace SLN
 
         }
 
-        public void addPath(NeuronMorrisLecar destNeuron)
+        public void addPath(Neuron destNeuron)
         {
             Random rnd = new Random();
             count_id++;//ogni volta che aggiungero' un neurone dovro' incrementare questo valore

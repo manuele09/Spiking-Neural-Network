@@ -19,22 +19,22 @@ namespace SLN
         /// <summary>
         /// The <b>A</b> parameter in Izhikevich's model
         /// </summary>
-        protected double A;
+        public double A;
 
-		/// <summary>
-		/// The <b>B</b> parameter in Izhikevich's model
-		/// </summary>
-		protected double B;
+        /// <summary>
+        /// The <b>B</b> parameter in Izhikevich's model
+        /// </summary>
+        public double B;
 
 		/// <summary>
 		/// The <b>C</b> parameter in Izhikevich's model
 		/// </summary>
-		protected double C;
+		public double C;
 
 		/// <summary>
 		/// The <b>D</b> parameter in Izhikevich's model
 		/// </summary>
-		protected double D;
+		public double D;
 
 		private double _v;
 
@@ -221,27 +221,7 @@ namespace SLN
             Random rnd = new Random();
             double v;
             double u;
-            //double Inoise = (0.1 * (rnd.NextDouble() - 0.5)* I);// +3 * rnd.NextDouble();         //0.5 * I * rnd.NextDouble()
-            //Idetour = Countdetour * 8;
-            //if (step < Constants.SIMULATION_STEPS_DETOUR || Countdetour < 0) 
-            //  I += Inoise;
-            //else
-            //{
-            //    I += Inoise;
-            //    I += Idetour;
-            //}
-
-            //if (this._col == 1 && this._row == 0 && this._layer == LayerNumbers.SOSL_1 && (step < 1001 && step > 998))
-                //Console.WriteLine("\n\n Current: " + this.I + "   Step: " + step + " Count = " + Countdetour + "\t");
-
-            //if (this.LAYER == LayerNumbers.LIQUID_STATE && this.ROW == 100 && this.COLUMN == 100)
-            //{
-            //    _iPrev = I;
-            //    _v = I;
-            //    resetI();
-            //    return false;
-            //}
-
+           
             if (this.LAYER == LayerNumbers.LIQUID_STATE)
             {
                 //V and U are the values at the previous simulation step, 

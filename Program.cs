@@ -9,6 +9,11 @@
  */
 //Strumenti -> Gestione Pacchetti Nuget -> Console Gestione di Pacchetti -> PM> Install-Package System.Threading.dll
 
+//Le scritture su file impiegano il 30% dell'esecuzione
+//verificare che la non simulazione delle sinapsi inibitorie del context
+//non influiscano eccessivamente sulla normale esecuzione
+//modifica morris con izikevich
+
 using System.Collections.Generic;
 using System;
 using System.Diagnostics;
@@ -294,7 +299,7 @@ namespace SLN
 
             }
 
-            for (int l = 0; l < 0; l++)
+            for (int l = 0; l < 2; l++)
             {
 
                 for (int i = 0; i < 5; i++, ep++) //seconda sequenza

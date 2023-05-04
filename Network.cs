@@ -1552,43 +1552,17 @@ namespace SLN
             fileTarget.Close();
             double threshold = _outExt.getMorrisThreshold(signedTarget);
 
-            //if (countSpike > (Constants.MORRIS_WINNER_SPIKE))     //vecchia versione con soglia costante per tutti i morris
 
-            if (countSpike > threshold)                             //nuova versione con la soglia che varia in base alla frequenza del morris
+            if (countSpike > threshold)
                 return true;
             else
                 return false;
 
-            //if ((errorMeanTest / Constants.SIMULATION_STEPS_LIQUID) > Constants.LIQUID_TO_OUT_THRESHOLD)
-            //    return false;
-            //else return true;
+ 
 
         }
 
 
-
-
-        /// <summary>
-        /// Simulates the network for learning (logging the results)
-        /// </summary>
-        /// <param name="log">The logger object</param>
-        /// <param name="simNumber">Number of the simulation (0-based)</param>
-        public void learnLiquid(StateLogger log, int simNumber)
-        {
-            int target = 0;
-            if (simNumber != 0)
-                target = addNewNeuron(simNumber);
-
-            int simNumberInternal = 0;
-            double errorLearn = this.simulateLiquid(log, null, simNumber, simNumberInternal, true, target, false);
-            while (errorLearn == -1)
-            {
-                StateLogger sl = new StateLogger("Neurons" + (simNumber) + "-" + simNumberInternal + ".txt", "Synapse" + (simNumber) + "-" + simNumberInternal + ".txt", "NeuronMorrisLecar" + (simNumber) + "-" + simNumberInternal + ".txt", true, false, true);
-
-                errorLearn = this.simulateLiquid(sl, null, simNumber, simNumberInternal, true, target, false);
-                simNumberInternal++;
-            }
-        }
 
         /// <summary>
         /// Simulates the network for learning (logging the results for STDP synapse)
@@ -1671,6 +1645,9 @@ namespace SLN
             }
 
             simNumberInternal = -1;
+            for (int i = 0; i < Constants.CLASSES; i++)
+                if (_outExt.getNeuronMorris(i) != null)
+                    Console.WriteLine("Frequenza Neurone di morris " + i + ": " + _outExt.getNeuronMorris(i).getFrequency(1000));
             Console.WriteLine("\t\t\t\t\t\t\t\tNeurone vincitoree: " + indexWinOut);
             Console.WriteLine("\t\t\t\t\t\t\t\tFrequenza End Neuronn: " + frequencyRewardSequence);
             Console.WriteLine("\t\t\t\t\t\t\t\tNeurone Motore vincitoree: " + feat[feat.Length - 1] + "\n\n");
