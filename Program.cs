@@ -22,6 +22,7 @@ using System.Threading;
 using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace SLN
 {
@@ -30,7 +31,7 @@ namespace SLN
     /// </summary>
 	public class Program
     {
-
+        static int ep = 0;
         /// <summary>
         /// The Main method
         /// </summary>
@@ -165,315 +166,41 @@ namespace SLN
             Network net = BinarySerialization.ReadFromBinaryFile<Network>(net_path);
             Console.WriteLine("Rete importata: " + DateTime.Now);*/
 
-            System.Console.WriteLine("*** *** *** *** *** *** *** *** Learning *** *** *** ****** *** *** ***");
-            int ep = 0;
-            for (int l = 0; l < 0; l++)
+            System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Learning *** *** *** ****** *** *** ****** *** ***");
+           
+            
+            List<NetworkInput> prima_sequenza = new List<NetworkInput>();
+            List<String> str_prima_sequenza = new List<string>();
+            prima_sequenza.Add(BlueRectangleDx);
+            str_prima_sequenza.Add("Blue Rectangle Dx");
+            prima_sequenza.Add(RedRectangleSx);
+            str_prima_sequenza.Add("Red Rectangle Sx");
+            prima_sequenza.Add(BlueCircleSx);
+            str_prima_sequenza.Add("Blue Circle Sx");
+            prima_sequenza.Add(BlueCircleSx);
+            str_prima_sequenza.Add("Blue Circle Sx");
+            prima_sequenza.Add(RedCircleSxEnd);
+            str_prima_sequenza.Add("Red Circle Sx End");
+
+            for (int l = 0; l < 1; l++)
             {
-
-                
-                for (int i = 0; i < 0; i++, ep++) //seconda sequenza
-                {
-                    //  if (Constants.ENABLE_OUTPUT)
-                    System.Console.WriteLine("*** *** *** *** Simulazione {0} *** *** *** ***", ep + 1);
-
-                    StateLogger sl = new StateLogger(pathPc + @"\Dati\Neurons" + ep + ".txt", pathPc + @"\Dati\Synapse" + ep + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + ep + ".txt", true, false, true);
-                    StateLogger slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + ep + ".txt", pathPc + @"\Dati\SynapseSTDP" + ep + ".txt", false, true);
-
-                    switch (i % 2)
-                    {
-
-                        case 0:
-                            net.resetInputs();
-                            Console.WriteLine("                                                         Input Dato: Cerchio Giallo Sx (2a sequenza)");
-                            net.setInput(YellowCircleSx);
-                            break;
-
-                        case 1:
-                            net.resetInputs();
-                            Console.WriteLine("                                                         Input Dato: Rettangolo Giallo Dx End2 (2a sequenza)");
-                            net.setInput(YellowRectangleDxEnd);
-                            break;
-                    }
-                    Console.WriteLine("Sim started at " + DateTime.Now);
-                    net.learnLiquid(sl, slStdp, ep);
-                    Console.WriteLine("Sim finished at " + DateTime.Now);
-                }
-
-                for (int i = 0; i < 0; i++, ep++) //seconda sequenza
-                {
-                    //  if (Constants.ENABLE_OUTPUT)
-                    System.Console.WriteLine("*** *** *** *** Simulazione {0} *** *** *** ***", ep + 1);
-
-                    StateLogger sl = new StateLogger(pathPc + @"\Dati\Neurons" + ep + ".txt", pathPc + @"\Dati\Synapse" + ep + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + ep + ".txt", true, false, true);
-                    StateLogger slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + ep + ".txt", pathPc + @"\Dati\SynapseSTDP" + ep + ".txt", false, true);
-
-                    switch (i % 2)
-                    {
-
-                        case 0:
-                            net.resetInputs();
-                            Console.WriteLine("                                                         Input Dato: Rettangolo Blu Sx (3a sequenza)");
-                            net.setInput(BlueRectangleSx);
-                            break;
-
-                        case 1:
-                            net.resetInputs();
-                            Console.WriteLine("                                                         Input Dato: Rettangolo Giallo Sx End1 (3a sequenza)");
-                            net.setInput(YellowRectangleSxEnd);
-                            break;
-                    }
-                    Console.WriteLine("Sim started at " + DateTime.Now);
-                    net.learnLiquid(sl, slStdp, ep);
-                    Console.WriteLine("Sim finished at " + DateTime.Now);
-                }
-
-                for (int i = 0; i < 0; i++, ep++) //seconda sequenza
-                {
-                    //  if (Constants.ENABLE_OUTPUT)
-                    System.Console.WriteLine("*** *** *** *** Simulazione {0} *** *** *** ***", ep + 1);
-
-                    StateLogger sl = new StateLogger(pathPc + @"\Dati\Neurons" + ep + ".txt", pathPc + @"\Dati\Synapse" + ep + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + ep + ".txt", true, false, true);
-                    StateLogger slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + ep + ".txt", pathPc + @"\Dati\SynapseSTDP" + ep + ".txt", false, true);
-
-                    switch (i % 2)
-                    {
-
-                        case 0:
-                            net.resetInputs();
-                            Console.WriteLine("                                                         Input Dato: Cerchio Giallo Dx (4a sequenza)");
-                            net.setInput(YellowCircleDx);
-                            break;
-
-                        case 1:
-                            net.resetInputs();
-                            Console.WriteLine("                                                         Input Dato: Rettangolo Rosso Dx End2 (4a sequenza)");
-                            net.setInput(RedRectangleDxEnd);
-                            break;
-                    }
-                    Console.WriteLine("Sim started at " + DateTime.Now);
-                    net.learnLiquid(sl, slStdp, ep);
-                    Console.WriteLine("Sim finished at " + DateTime.Now);
-                }
-                
-                for (int i = 0; i < 4; i++, ep++) //prima sequenza
-                {
-                    //  if (Constants.ENABLE_OUTPUT)
-                    System.Console.WriteLine("*** *** *** *** Simulazione {0} *** *** *** ***", ep + 1);
-
-                    StateLogger sl = new StateLogger(pathPc + @"\Dati\Neurons" + ep + ".txt", pathPc + @"\Dati\Synapse" + ep + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + ep + ".txt", true, false, true);
-                    StateLogger slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + ep + ".txt", pathPc + @"\Dati\SynapseSTDP" + ep + ".txt", false, true);
-
-                    switch (i % 4)
-                    {
-
-                        case 0:
-                            net.resetInputs();
-                            Console.WriteLine("                                                         Input Dato: Rettangolo Blu Dx(1a sequenza)");
-                            net.setInput(BlueRectangleDx);
-                            break;
-
-                        case 1:
-                            net.resetInputs();
-                            Console.WriteLine("                                                         Input Dato: Rettangolo Rosso Sx (1a sequenza)");
-                            net.setInput(RedRectangleSx);
-                            break;
-                        case 2:
-                            net.resetInputs();
-                            Console.WriteLine("                                                         Input Dato: Cerchio Blu Sx (1a sequenza)");
-
-                            net.setInput(BlueCircleSx);
-                            break;
-
-                        case 3:
-                            net.resetInputs();
-                            Console.WriteLine("                                                         Input Dato: Cerchio Rosso Sx End3 (1a sequenza)");
-                            net.setInput(RedCircleSxEnd);
-                            break;
-                    }
-                    Console.WriteLine("Sim started at " + DateTime.Now);
-                    net.learnLiquid(sl, slStdp, ep);
-                    Console.WriteLine("Sim finished at " + DateTime.Now);
-                }
-
-                BinarySerialization.WriteToBinaryFile<Network>(net_path+l+".bin", net);
-
-            }
-
-            for (int l = 0; l < 2; l++)
-            {
-
-                for (int i = 0; i < 5; i++, ep++) //seconda sequenza
-                {
-                    //  if (Constants.ENABLE_OUTPUT)
-                    System.Console.WriteLine("*** *** *** *** Simulazione {0} *** *** *** ***", ep + 1);
-
-                    StateLogger sl = new StateLogger(pathPc + @"\Dati\Neurons" + ep + ".txt", pathPc + @"\Dati\Synapse" + ep + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + ep + ".txt", true, false, true);
-                    StateLogger slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + ep + ".txt", pathPc + @"\Dati\SynapseSTDP" + ep + ".txt", false, true);
-                    switch (i % 5)
-                    {
-
-                        case 0:
-                            net.resetInputs();
-                            Console.WriteLine("                                                         Input Dato: Rettangolo Blu Dx(1a sequenza)");
-                            net.setInput(BlueRectangleDx);
-                            break;
-
-                        case 1:
-                            net.resetInputs();
-                            Console.WriteLine("                                                         Input Dato: Rettangolo Rosso Sx (1a sequenza)");
-                            net.setInput(RedRectangleSx);
-                            break;
-                        case 2:
-                            net.resetInputs();
-                            Console.WriteLine("                                                         Input Dato: Cerchio Blu Sx (1a sequenza)");
-
-                            net.setInput(BlueCircleSx);
-                            break;
-                        case 3:
-                            net.resetInputs();
-                            Console.WriteLine("                                                         Input Dato: Cerchio Blu Sx (1a sequenza)");
-
-                            net.setInput(BlueCircleSx);
-                            break;
-                        case 4:
-                            net.resetInputs();
-                            Console.WriteLine("                                                         Input Dato: Cerchio Rosso Sx End3 (1a sequenza)");
-                            net.setInput(RedCircleSxEnd);
-                            break;
-                    }
-
-                    Console.WriteLine("Sim started at " + DateTime.Now);
-                    net.learnLiquid(sl, slStdp, ep);
-                    Console.WriteLine("Sim finished at " + DateTime.Now);
-                }
-
-                for (int i = 0; i < 0; i++, ep++) //seconda sequenza
-                {
-                    //  if (Constants.ENABLE_OUTPUT)
-                    System.Console.WriteLine("*** *** *** *** Simulazione {0} *** *** *** ***", ep + 1);
-
-                    StateLogger sl = new StateLogger(pathPc + @"\Dati\Neurons" + ep + ".txt", pathPc + @"\Dati\Synapse" + ep + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + ep + ".txt", true, false, true);
-                    StateLogger slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + ep + ".txt", pathPc + @"\Dati\SynapseSTDP" + ep + ".txt", false, true);
-
-                    switch (i % 2)
-                    {
-
-                        case 0:
-                            net.resetInputs();
-                            Console.WriteLine("                                                         Input Dato: Rettangolo Rosso Sx (2a sequenza)");
-                            net.setInput(RedRectangleSx);
-                            break;
-
-                        case 1:
-                            net.resetInputs();
-                            Console.WriteLine("                                                         Input Dato: Cerchio Blu Dx End1 (2a sequenza)");
-                            net.setInput(BlueCircleDxEnd);
-                            break;
-                    }
-                    Console.WriteLine("Sim started at " + DateTime.Now);
-                    net.learnLiquid(sl, slStdp, ep);
-                    Console.WriteLine("Sim finished at " + DateTime.Now);
-                }
-
-                for (int i = 0; i < 0; i++, ep++) //seconda sequenza
-                {
-                    //  if (Constants.ENABLE_OUTPUT)
-                    System.Console.WriteLine("*** *** *** *** Simulazione {0} *** *** *** ***", ep + 1);
-
-                    StateLogger sl = new StateLogger(pathPc + @"\Dati\Neurons" + ep + ".txt", pathPc + @"\Dati\Synapse" + ep + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + ep + ".txt", true, false, true);
-                    StateLogger slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + ep + ".txt", pathPc + @"\Dati\SynapseSTDP" + ep + ".txt", false, true);
-
-                    switch (i % 2)
-                    {
-
-                        case 0:
-                            net.resetInputs();
-                            Console.WriteLine("                                                         Input Dato: Cerchio Rosso Sx (3a sequenza)");
-                            net.setInput(RedCircleSx);
-                            break;
-
-                        case 1:
-                            net.resetInputs();
-                            Console.WriteLine("                                                         Input Dato: Rettangolo Rosso Sx End (3a sequenza)");
-                            net.setInput(RedRectangleSxEnd);
-                            break;
-                    }
-                    Console.WriteLine("Sim started at " + DateTime.Now);
-                    net.learnLiquid(sl, slStdp, ep);
-                    Console.WriteLine("Sim finished at " + DateTime.Now);
-                }
-
+                SimulateInputs(net, prima_sequenza, str_prima_sequenza);
                 BinarySerialization.WriteToBinaryFile<Network>(net_path + l + ".bin", net);
-
             }
 
-            //BinarySerialization.WriteToBinaryFile<Network>(net_path + l + ".bin", net);            //Console.WriteLine("Rete Salvata");
-            //System.Console.WriteLine("*** *** *** *** *** *** *** *** test *** *** *** ****** *** *** ***");
-
-             Console.WriteLine("Importazione rete: " + DateTime.Now);
-             net = BinarySerialization.ReadFromBinaryFile<Network>(net_path + 1 + ".bin");
-            Console.WriteLine("Rete importata: " + DateTime.Now);
-            for (int epo = 0; epo < 5; epo++, ep++)
-            {
-                //if (Constants.ENABLE_OUTPUT)
-                System.Console.WriteLine("*** *** *** *** Simulazione {0} *** *** *** ***", epo + 1);
 
 
-                StateLogger sl = new StateLogger(pathPc + @"\Dati\Neurons" + (Constants.LEARNING_NUMBER + epo) + ".txt", pathPc + @"\Dati\Synapse" + (Constants.LEARNING_NUMBER + epo) + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + (Constants.LEARNING_NUMBER + epo) + ".txt", true, false, true);
-                StateLogger slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + (Constants.LEARNING_NUMBER + epo) + ".txt", pathPc + @"\Dati\SynapseSTDP" + (Constants.LEARNING_NUMBER + epo) + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + (Constants.LEARNING_NUMBER + epo) + ".txt", false, true, false);
-                /*while(true)
-                {
-                    Get_input_2(net);
-                    Console.ReadLine();
-                }*/
-                switch (epo + 1)
-                {
-
-                    case 1:
-                        net.resetInputs();
-                        Console.WriteLine("                                                         Input Dati: Rettangolo Blu");
-                        net.setInput(BlueRectangle);
-                        /*net.setInput(RedRectangle);
-                        net.setInput(BlueCircle);
-                        net.setInput(RedCircleSx);*/
-                        break;
-               
-                        
-                    case 2:
-                        net.resetInputs();
-                        Console.WriteLine("                                                         Input Dati: Null1");
-     
-                        net.setInput(inputNull);
-                        break;
-                    case 3:
-                        net.resetInputs();
-                        Console.WriteLine("                                                         Input Dati: Null2");
-                        //net.setInput(inputCNoReward);
-
-                        net.setInput(inputNull);
-                        break;
-                    case 4:
-                        net.resetInputs();
-                        Console.WriteLine("                                                         Input Dati: Null2");
-                        //net.setInput(inputCNoReward);
-
-                        net.setInput(inputNull);
-                        break;
-                    case 5:
-                        net.resetInputs();
-                        Console.WriteLine("                                                         Input Dati: Null2");
-                        //net.setInput(inputCNoReward);
-
-                        net.setInput(inputNull);
-                        break;
 
 
-                }
-                Console.WriteLine("Sim Started at " + DateTime.Now);
-                net.testLiquid(sl, slStdp, ep);
-                Console.WriteLine("Sim finished at " + DateTime.Now);
-            }
 
+
+
+            System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Testing *** *** *** ****** *** *** ****** *** ***");
+
+
+            net = BinarySerialization.ReadFromBinaryFile<Network>(net_path + 1 + ".bin");
+            
+            
 
         }
 
@@ -703,6 +430,27 @@ namespace SLN
 
         }
 
+        public static void SimulateInputs(Network net, List<NetworkInput> inputs, List<string> str_inputs)
+        {
+            String pathPc = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            for (int i = 0; i < inputs.Count; i++)
+            {
+                Console.WriteLine($"*** *** *** *** Simulazione {ep + 1} *** *** *** ***");
+
+                StateLogger sl = new StateLogger(pathPc + @"\Dati\Neurons" + ep + ".txt", pathPc + @"\Dati\Synapse" + ep + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + ep + ".txt", true, false, true);
+                StateLogger slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + ep + ".txt", pathPc + @"\Dati\SynapseSTDP" + ep + ".txt", false, true);
+
+                net.resetInputs();
+                net.setInput(inputs[i]);
+                Console.WriteLine("\t\t\t\t\t\t\t\t"+(i+1)+$"o Input Dato: {str_inputs[i]}");
+
+                Console.WriteLine("Sim started at " + DateTime.Now);
+                net.learnLiquid(sl, slStdp, i);
+                Console.WriteLine("Sim finished at " + DateTime.Now);
+
+                ep++;
+            }
+        }
 
     }
 }

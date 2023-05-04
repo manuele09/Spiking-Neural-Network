@@ -9,18 +9,19 @@ namespace SLN
     internal struct NeuronLoggerStruct
 	{
 		#region Logged variables
-		private int _row;
-		private int _col;
-		private LayerNumbers _layer;
-		private double _v;
-		private double _u;
-		private double _i;
-		private int _nSpikes;
-		private int _step;
-        private double _iOut;
-        private int _simNumber;
-        private int _idp;
-        private int _idt;
+		public int _row;
+		public int _col;
+		public LayerNumbers _layer;
+		public double _v;
+		public double _u;
+		public double _i;
+		public int _nSpikes;
+		public int _step;
+        public double _iOut;
+        public int _simNumber;
+        public int _idp;
+        public int _idt;
+        public double _iprev;
 		#endregion
 
 		/// <summary>
@@ -45,6 +46,7 @@ namespace SLN
             _simNumber = 0;
             _idp = -1;
             _idt = -1;
+            _iprev = neuron.IPrev;
 		}
 
         /// <summary>
@@ -69,28 +71,32 @@ namespace SLN
             _simNumber = simNumber;
             _idp = -1;
             _idt = -1;
+            _iprev = neuron.IPrev;
+
         }
 
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="step">The step of simulation</param>
-		/// <param name="neuron">The neuron to be logged</param>
-		internal NeuronLoggerStruct(int step, Neuron neuron)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="step">The step of simulation</param>
+        /// <param name="neuron">The neuron to be logged</param>
+        internal NeuronLoggerStruct(int step, Neuron neuron)
 		{
 			_step = step;
 			_row = neuron.ROW;
 			_col = neuron.COLUMN;
 			_layer = neuron.LAYER;
-			_v = neuron.V;
-			_u = neuron.U;
+			//_v = neuron.V;
+            _v = neuron.v_prev;
+            _u = neuron.U;
 			_i = neuron.IPrev;
 			_nSpikes = neuron.NSpikes;
             _iOut = neuron._iOut;
             _simNumber = 0;
             _idp = -1;
             _idt = -1;
-		}
+            _iprev = neuron.IPrev;
+        }
 
         /// <summary>
         /// Constructor
@@ -111,6 +117,7 @@ namespace SLN
             _simNumber = 0;
             _idp = idp;
             _idt = idt;
+            _iprev = neuron.IPrev;
         }
 
         /// <summary>
@@ -132,6 +139,7 @@ namespace SLN
             _simNumber = simNumber;
             _idp = -1;
             _idt = -1;
+            _iprev = neuron.IPrev;
         }
 
 
@@ -148,7 +156,7 @@ namespace SLN
                 + _row.ToString() + "\t" + _col.ToString() +
                 "\t" + _v.ToString() + "\t" + _u.ToString() +
                 "\t" + _nSpikes.ToString() + "\t" + _i.ToString() + "\t" + _iOut.ToString() + "\t" + _simNumber.ToString()
-                + "\t" + _idp.ToString() + "\t" + _idt.ToString();
+                + "\t" + _idp.ToString() + "\t" + _idt.ToString() + "\t" + _iprev.ToString();
             str = str.Replace(',', '.');
             str = str.Replace("Non un numero reale", "0");
             return str;

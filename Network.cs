@@ -1215,7 +1215,7 @@ namespace SLN
 
                     }
 
-                    target = (double)Math.Sin(((step - Constants.SIMULATION_STEPS_FEEDFORWARD) * 2 * Math.PI * ((signedTarget+1)*5 * 0.001)) / Constants.INTEGRATION_STEP_MORRIS_LECAR) / 100;
+                    target = (double)Math.Sin(((step - Constants.SIMULATION_STEPS_FEEDFORWARD) * 2 * Math.PI * ((signedTarget+1)*5 * 0.001))) / 100;
                     ////Da mettere se vogliamo squadrare la sinusoide
                     //if (target > 0)
                     //    target = value;
@@ -1404,6 +1404,10 @@ namespace SLN
 
             }
             //ricordo che indexWinOut è l'indice del neurone di Morris Lecar Vincente
+            for (int i = 0; i < Constants.CLASSES; i++)
+                if (_outExt.getNeuronMorris(i) != null)
+                    //Console.WriteLine("Frequenza Neurone di morris " + i + ": " + _outExt.getNeuronMorris(i).getFrequency(1000));
+                    Console.WriteLine("Frequenza Neurone di morris " + i + ": " + _outExt.getNeuronMorris(i).NSpikes);
             if (indexWinOut != -1)
             {
 
@@ -1450,6 +1454,7 @@ namespace SLN
             //else if (test) {
             //    _context.winContextOld = _context.getWinnerContext(Constants.SIMULATION_STEPS_LIQUID + Constants.SIMULATION_STEPS_FEEDFORWARD - 1);                   
             //}
+            
             _outExt.resetState();
             _context.resetNeuronsState();
             //_ntarget.resetState();
@@ -1645,9 +1650,6 @@ namespace SLN
             }
 
             simNumberInternal = -1;
-            for (int i = 0; i < Constants.CLASSES; i++)
-                if (_outExt.getNeuronMorris(i) != null)
-                    Console.WriteLine("Frequenza Neurone di morris " + i + ": " + _outExt.getNeuronMorris(i).getFrequency(1000));
             Console.WriteLine("\t\t\t\t\t\t\t\tNeurone vincitoree: " + indexWinOut);
             Console.WriteLine("\t\t\t\t\t\t\t\tFrequenza End Neuronn: " + frequencyRewardSequence);
             Console.WriteLine("\t\t\t\t\t\t\t\tNeurone Motore vincitoree: " + feat[feat.Length - 1] + "\n\n");

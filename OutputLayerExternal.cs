@@ -19,6 +19,16 @@ namespace SLN
         private double[,] matrixKI;
         private double[] matrixf;
 
+       /* private double a = 0.03;
+        private double b = 0.2;
+        private double c = -65;
+        private double d = 2.5;
+       */
+        private double a = 0.02;
+        private double b = 0.5;
+        private double c = -65;
+        private double d = 2;
+
 
         /// <summary>
         /// Constructor
@@ -43,11 +53,12 @@ namespace SLN
 
 
             Neuron m = new Neuron();
-            m.A = 0.1;
-            m.B = 0.26;
-            m.C = -65;
-            m.D = 8;
+            m.A = a;
+            m.B = b;
+            m.C = c;
+            m.D = d;
             m.setCoord(1, index, LayerNumbers.OUTPUT_LAYER);
+            m.i_const_morris = matrixf[index];
             _neurons.AddLast(m);
 
             SumNeuron n = new SumNeuron(0, matrixKI[index, 1]);  //uso la variabile gain nel caso del sommatore per dire a che valore deve saturare l'ingresso (in pratico stabilisco il valore della saturazione della funzione di heaviside
@@ -184,7 +195,10 @@ namespace SLN
                 {
                     if (m.COLUMN == n.COLUMN)
                     {
-                        m.I = n.V * 1000;
+                        if (n.V > 0)
+                            m.I = 10;
+                        else
+                            m.I = -10;
                         m.simulate(step);
                         if (log != null)
                             log.logNeuronMorrisLecar(step, m);
@@ -229,10 +243,11 @@ namespace SLN
         public SumNeuron addNeuron()
         {
             Neuron m = new Neuron();
-            m.A = 0.1;
-            m.B = 0.26;
-            m.C = -65;
-            m.D = 8;
+            m.A = a;
+            m.B = b;
+            m.C = c;
+            m.D = d;
+            m.i_const_morris = matrixf[index];
             m.setCoord(1, index, LayerNumbers.OUTPUT_LAYER);
 
             SumNeuron n = new SumNeuron(0, matrixKI[index, 1]);

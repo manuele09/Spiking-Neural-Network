@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SLN;
+using System;
 using System.IO;
 /// <summary>
 /// Functions for performing common binary Serialization operations.
@@ -40,9 +41,11 @@ public static class BinarySerialization
     /// <returns>Returns a new instance of the object read from the binary file.</returns>
     public static T ReadFromBinaryFile<T>(string filePath)
     {
+        Console.WriteLine("Importazione rete: " + DateTime.Now);
         using (Stream stream = File.Open(filePath, FileMode.Open))
         {
             var binaryFormatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+            Console.WriteLine("Rete importata: " + DateTime.Now);
             return (T)binaryFormatter.Deserialize(stream);
         }
     }
