@@ -162,44 +162,54 @@ namespace SLN
 
             //create the network
             Network net = Network.generateNetwork();
-            /*Console.WriteLine("Importazione rete: " + DateTime.Now);
-            Network net = BinarySerialization.ReadFromBinaryFile<Network>(net_path);
-            Console.WriteLine("Rete importata: " + DateTime.Now);*/
-
             System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Learning *** *** *** ****** *** *** ****** *** ***");
 
-
             List<NetworkInput> prima_sequenza = new List<NetworkInput>();
-            List<String> str_prima_sequenza = new List<string>();
+            List<string> str_prima_sequenza = new List<string>();
+            List<int> prima_targets = new List<int>();
+            
             prima_sequenza.Add(BlueRectangleDx);
-            str_prima_sequenza.Add("Blue Rectangle Dx");
             prima_sequenza.Add(RedRectangleSx);
-            str_prima_sequenza.Add("Red Rectangle Sx");
             prima_sequenza.Add(BlueCircleSx);
-            str_prima_sequenza.Add("Blue Circle Sx");
             prima_sequenza.Add(BlueCircleSx);
-            str_prima_sequenza.Add("Blue Circle Sx");
             prima_sequenza.Add(RedCircleSxEnd);
+            
+            str_prima_sequenza.Add("Blue Rectangle Dx");
+            str_prima_sequenza.Add("Red Rectangle Sx");
+            str_prima_sequenza.Add("Blue Circle Sx");
+            str_prima_sequenza.Add("Blue Circle Sx");
             str_prima_sequenza.Add("Red Circle Sx End");
+            
+            prima_targets.Add(0);
+            prima_targets.Add(1);
+            prima_targets.Add(2);
+            prima_targets.Add(2);
+            prima_targets.Add(3);
 
             for (int l = 0; l < 1; l++)
             {
-                SimulateInputs(net, prima_sequenza, str_prima_sequenza);
+                SimulateInputs(net, prima_sequenza, str_prima_sequenza, prima_targets);
                 BinarySerialization.WriteToBinaryFile<Network>(net_path + l + ".bin", net);
             }
 
-
-
-
-
-
-
-
             System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Testing *** *** *** ****** *** *** ****** *** ***");
-
-
             net = BinarySerialization.ReadFromBinaryFile<Network>(net_path + 1 + ".bin");
 
+            List<NetworkInput> test_sequenza = new List<NetworkInput>();
+            List<string> str_test_sequenza = new List<string>();
+            test_sequenza.Add(BlueRectangle);
+            str_test_sequenza.Add("Blue Rectangle");
+            test_sequenza.Add(inputNull);
+            str_test_sequenza.Add("Input Null");
+            test_sequenza.Add(inputNull);
+            str_test_sequenza.Add("Input Null");
+            test_sequenza.Add(inputNull);
+            str_test_sequenza.Add("Input Null");
+            test_sequenza.Add(inputNull);
+            str_test_sequenza.Add("Input Null");
+            for (int l = 0; l < 1; l++)
+                SimulateInputs(net, prima_sequenza, str_prima_sequenza, prima_targets);
+            
 
 
         }
@@ -430,9 +440,10 @@ namespace SLN
 
         }
 
-        public static void SimulateInputs(Network net, List<NetworkInput> inputs, List<string> str_inputs)
+        public static void SimulateInputs(Network net, List<NetworkInput> inputs, List<string> str_inputs, List<int> target_inputs)
         {
             String pathPc = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            string output_message;
             for (int i = 0; i < inputs.Count; i++)
             {
                 Console.WriteLine($"*** *** *** *** Simulazione {ep + 1} *** *** *** ***");
@@ -442,7 +453,12 @@ namespace SLN
 
                 net.resetInputs();
                 net.setInput(inputs[i]);
-                Console.WriteLine("\t\t\t\t\t\t\t\t" + (i + 1) + $"o Input Dato: {str_inputs[i]}");
+                output_message = "\t\t\t\t\t\t\t\t" + (i + 1) + "o Input Dato";
+                if (str_inputs != null)
+                    output_message += ": " + str_inputs[i];
+                if (target_inputs != null)
+                    output_message += "; Expected Target: " + target_inputs[i];
+                Console.WriteLine(output_message);
 
                 Console.WriteLine("Sim started at " + DateTime.Now);
                 net.learnLiquid(sl, slStdp, i);

@@ -29,7 +29,7 @@ public static class BinarySerialization
 
         FileInfo fileInfo = new FileInfo(filePath);
         long fileSize = fileInfo.Length;
-        Console.WriteLine($"Network salvato. Dimensione del file: {fileSize} byte");
+        Console.WriteLine($"Network salvato. Dimensione del file: {fileSize} byte.");
     }
 
     /// <summary>
@@ -40,10 +40,16 @@ public static class BinarySerialization
     /// <returns>Returns a new instance of the object read from the binary file.</returns>
     public static T ReadFromBinaryFile<T>(string filePath)
     {
+        FileInfo fileInfo = new FileInfo(filePath);
+        long fileSize = fileInfo.Length;
+        T class_imported;
+        Console.WriteLine($"Importazione Network. Dimensione del file: {fileSize} byte.");
         using (Stream stream = File.Open(filePath, FileMode.Open))
         {
             var binaryFormatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-            return (T)binaryFormatter.Deserialize(stream);
+            class_imported = (T)binaryFormatter.Deserialize(stream);
         }
+        Console.WriteLine("Network importato!");
+        return class_imported;
     }
 }
