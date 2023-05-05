@@ -159,9 +159,9 @@ namespace SLN
 
             #endregion
 
-
-            //create the network
             Network net = Network.generateNetwork();
+            
+            #region learning
             System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Learning *** *** *** ****** *** *** ****** *** ***");
 
             List<NetworkInput> prima_sequenza = new List<NetworkInput>();
@@ -191,7 +191,9 @@ namespace SLN
                 SimulateInputs(net, prima_sequenza, str_prima_sequenza, prima_targets);
                 BinarySerialization.WriteToBinaryFile<Network>(net_path + l + ".bin", net);
             }
+            #endregion
 
+            #region testing
             System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Testing *** *** *** ****** *** *** ****** *** ***");
             net = BinarySerialization.ReadFromBinaryFile<Network>(net_path + 1 + ".bin");
 
@@ -209,8 +211,8 @@ namespace SLN
             str_test_sequenza.Add("Input Null");
             for (int l = 0; l < 1; l++)
                 SimulateInputs(net, prima_sequenza, str_prima_sequenza, prima_targets);
-            
 
+            #endregion
 
         }
 
