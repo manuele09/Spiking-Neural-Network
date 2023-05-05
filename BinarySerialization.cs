@@ -1,5 +1,4 @@
-﻿using SLN;
-using System;
+﻿using System;
 using System.IO;
 /// <summary>
 /// Functions for performing common binary Serialization operations.
@@ -30,7 +29,7 @@ public static class BinarySerialization
 
         FileInfo fileInfo = new FileInfo(filePath);
         long fileSize = fileInfo.Length;
-        Console.WriteLine($"Network salvato. Dimensione del file: {fileSize} byte");
+        Console.WriteLine($"Network salvato. Dimensione del file: {fileSize} byte.");
     }
 
     /// <summary>
@@ -41,12 +40,16 @@ public static class BinarySerialization
     /// <returns>Returns a new instance of the object read from the binary file.</returns>
     public static T ReadFromBinaryFile<T>(string filePath)
     {
-        Console.WriteLine("Importazione rete: " + DateTime.Now);
+        FileInfo fileInfo = new FileInfo(filePath);
+        long fileSize = fileInfo.Length;
+        T class_imported;
+        Console.WriteLine($"Importazione Network. Dimensione del file: {fileSize} byte.");
         using (Stream stream = File.Open(filePath, FileMode.Open))
         {
             var binaryFormatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-            Console.WriteLine("Rete importata: " + DateTime.Now);
-            return (T)binaryFormatter.Deserialize(stream);
+            class_imported = (T)binaryFormatter.Deserialize(stream);
         }
+        Console.WriteLine("Network importato!");
+        return class_imported;
     }
 }
