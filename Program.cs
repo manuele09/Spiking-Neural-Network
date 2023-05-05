@@ -23,6 +23,7 @@ using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Accord.Statistics.Models;
 
 namespace SLN
 {
@@ -31,7 +32,6 @@ namespace SLN
     /// </summary>
 	public class Program
     {
-        static int ep = 0;
         /// <summary>
         /// The Main method
         /// </summary>
@@ -186,31 +186,35 @@ namespace SLN
             prima_targets.Add(2);
             prima_targets.Add(3);
 
-            for (int l = 0; l < 1; l++)
+            for (int l = 0; l < 0; l++)
             {
-                SimulateInputs(net, prima_sequenza, str_prima_sequenza, prima_targets);
+                SimulateInputs(net, prima_sequenza, str_prima_sequenza, prima_targets, 1);
                 BinarySerialization.WriteToBinaryFile<Network>(net_path + l + ".bin", net);
             }
             #endregion
 
             #region testing
             System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Testing *** *** *** ****** *** *** ****** *** ***");
-            //net = BinarySerialization.ReadFromBinaryFile<Network>(net_path + 1 + ".bin");
+            net = BinarySerialization.ReadFromBinaryFile<Network>(net_path + 1 + ".bin");
 
             List<NetworkInput> test_sequenza = new List<NetworkInput>();
             List<string> str_test_sequenza = new List<string>();
+            
             test_sequenza.Add(BlueRectangle);
+            test_sequenza.Add(inputNull);
+            test_sequenza.Add(inputNull);
+            test_sequenza.Add(inputNull);
+            test_sequenza.Add(inputNull);
+            
             str_test_sequenza.Add("Blue Rectangle");
-            test_sequenza.Add(inputNull);
             str_test_sequenza.Add("Input Null");
-            test_sequenza.Add(inputNull);
             str_test_sequenza.Add("Input Null");
-            test_sequenza.Add(inputNull);
             str_test_sequenza.Add("Input Null");
-            test_sequenza.Add(inputNull);
             str_test_sequenza.Add("Input Null");
-            for (int l = 0; l < 1; l++)
-                SimulateInputs(net, prima_sequenza, str_prima_sequenza, prima_targets);
+
+
+            
+            SimulateInputs(net, test_sequenza, str_test_sequenza, prima_targets, 0);
 
             #endregion
 
@@ -442,16 +446,16 @@ namespace SLN
 
         }
 
-        public static void SimulateInputs(Network net, List<NetworkInput> inputs, List<string> str_inputs, List<int> target_inputs)
+        public static void SimulateInputs(Network net, List<NetworkInput> inputs, List<string> str_inputs, List<int> target_inputs, int learn)
         {
             String pathPc = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             string output_message;
             for (int i = 0; i < inputs.Count; i++)
             {
-                Console.WriteLine($"*** *** *** *** Simulazione {ep + 1} *** *** *** ***");
+                Console.WriteLine($"*** *** *** *** Simulazione {net.current_epoch + 1} *** *** *** ***");
 
-                StateLogger sl = new StateLogger(pathPc + @"\Dati\Neurons" + ep + ".txt", pathPc + @"\Dati\Synapse" + ep + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + ep + ".txt", true, false, true);
-                StateLogger slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + ep + ".txt", pathPc + @"\Dati\SynapseSTDP" + ep + ".txt", false, true);
+                StateLogger sl = new StateLogger(pathPc + @"\Dati\Neurons" + net.current_epoch + ".txt", pathPc + @"\Dati\Synapse" + net.current_epoch + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + net.current_epoch + ".txt", true, false, true);
+                StateLogger slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + net.current_epoch + ".txt", pathPc + @"\Dati\SynapseSTDP" + net.current_epoch + ".txt", false, true);
 
                 net.resetInputs();
                 net.setInput(inputs[i]);
@@ -463,10 +467,13 @@ namespace SLN
                 Console.WriteLine(output_message);
 
                 Console.WriteLine("Sim started at " + DateTime.Now);
-                net.learnLiquid(sl, slStdp, i);
+                if (learn == 1)
+                    net.learnLiquid(sl, slStdp, net.current_epoch);
+                else
+                    net.testLiquid(sl, slStdp, net.current_epoch);
                 Console.WriteLine("Sim finished at " + DateTime.Now);
 
-                ep++;
+                net.current_epoch++;
             }
         }
 

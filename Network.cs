@@ -26,6 +26,7 @@ namespace SLN
         private int simulationNumber;
         private int simNumberInternal;
         private double frequencyRewardSequence = -12;
+        public int current_epoch;
 
         // Lists of synapses
         private LinkedList<Synapse> _firstToFirst1;
@@ -127,6 +128,7 @@ namespace SLN
         /// </summary>
         private void init()
         {
+            current_epoch = 0;
             _layers = new Layers();
             _liquid = new LiquidState();
             _outExt = new OutputLayerExternal();
