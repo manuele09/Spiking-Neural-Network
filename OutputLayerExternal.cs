@@ -18,8 +18,8 @@ namespace SLN
         private LinkedList<Synapse> _morrisToSameness;
 
         private int index = 0;
-        private double[,] matrixKI;
-        private double[] matrixf;
+
+
 
 
          /// <summary>
@@ -42,17 +42,11 @@ namespace SLN
             _neuronPersistance = new LinkedList<SumNeuron>();
             _neuronSameness = new LinkedList<SumNeuron>();
 
-            matrixKI = new double[Constants.CLASSES,2]{ {0.055, 61.5},/* {0.067, 61.45}, {0.074, 61.4}, {0.082, 61.35}, {0.095, 61.25}, */{0.105, 61.2}, {0.155, 60.8}, {0.2, 60.5}};
-            matrixf = new double[Constants.CLASSES] {5, 10, 15, 20 };
-
-           // matrixKI = new double[6, 2] { { 0.055, 61.5 }, {0.067, 61.45}, /*{0.074, 61.4}, {0.082, 61.35},*/ {0.095, 61.35}, { 0.105, 61.2 }, { 0.155, 60.8 }, { 0.2, 60.5 } };
-           // matrixf = new double[6] { 5, 10, 15, 20, 25, 30};
-
-            NeuronMorrisLecar m = new NeuronMorrisLecar(matrixKI[index, 0], matrixKI[index,1]);
+            NeuronMorrisLecar m = new NeuronMorrisLecar(Constants.KF, Constants.KI);
             m.setCoord(1, index, LayerNumbers.OUTPUT_LAYER);         
             _neurons.AddLast(m);
 
-            SumNeuron n = new SumNeuron(0, matrixKI[index, 1]);  //uso la variabile gain nel caso del sommatore per dire a che valore deve saturare l'ingresso (in pratico stabilisco il valore della saturazione della funzione di heaviside
+            SumNeuron n = new SumNeuron(0, Constants.KI);  //uso la variabile gain nel caso del sommatore per dire a che valore deve saturare l'ingresso (in pratico stabilisco il valore della saturazione della funzione di heaviside
             n.setCoord(0, index, LayerNumbers.OUTPUT_LAYER);
             _neuronSum.AddLast(n);
 
@@ -69,13 +63,13 @@ namespace SLN
             _morrisToPersistance = new LinkedList<Synapse>();
             _morrisToSameness = new LinkedList<Synapse>();
 
-            Synapse syn = new SynapseSameness(m, o, Constants.MORRIS_TO_SAMENESS_W/matrixf[index],
+            Synapse syn = new SynapseSameness(m, o, Constants.MORRIS_TO_SAMENESS_W/ (Constants.start_freq + index * Constants.incr_freq),
                                     Constants.MORRIS_TO_SAMENESS_TAU,
                                     Constants.MORRIS_TO_SAMENESS_DELAY_STEP,
                                     Constants.MORRIS_TO_SAMENESS_SYNAPTIC_GAIN);
             _morrisToPersistance.AddLast(syn);
 
-            Synapse syn2 = new SynapseSameness(m, p, Constants.MORRIS_TO_SAMENESS_W / matrixf[index],
+            Synapse syn2 = new SynapseSameness(m, p, Constants.MORRIS_TO_SAMENESS_W / (Constants.start_freq + index * Constants.incr_freq),
                                    Constants.MORRIS_TO_SAMENESS_TAU1,
                                    Constants.MORRIS_TO_SAMENESS_DELAY_STEP,
                                    Constants.MORRIS_TO_SAMENESS_SYNAPTIC_GAIN);
@@ -276,10 +270,10 @@ namespace SLN
         }
 
         public SumNeuron addNeuron() {
-            NeuronMorrisLecar m = new NeuronMorrisLecar(matrixKI[index, 0], matrixKI[index,1]);
+            NeuronMorrisLecar m = new NeuronMorrisLecar(Constants.KF, Constants.KI);
             m.setCoord(1, index, LayerNumbers.OUTPUT_LAYER);
 
-            SumNeuron n = new SumNeuron(0, matrixKI[index, 1]);
+            SumNeuron n = new SumNeuron(0, Constants.KI);
             n.setCoord(0, index, LayerNumbers.OUTPUT_LAYER);
 
             SumNeuron o = new SumNeuron();
@@ -288,14 +282,14 @@ namespace SLN
             SumNeuron p = new SumNeuron(Constants.MORRIS_TO_SAMENESS_DECAY,Constants.MORRIS_TO_SAMENESS_GAIN);
             p.setCoord(3, index, LayerNumbers.OUTPUT_LAYER);
 
-            Synapse syn = new SynapseSameness(m, o, Constants.MORRIS_TO_SAMENESS_W / matrixf[index],
+            Synapse syn = new SynapseSameness(m, o, Constants.MORRIS_TO_SAMENESS_W / (Constants.start_freq + index * Constants.incr_freq),
                                     Constants.MORRIS_TO_SAMENESS_TAU,
                                     Constants.MORRIS_TO_SAMENESS_DELAY_STEP,
                                     Constants.MORRIS_TO_SAMENESS_SYNAPTIC_GAIN);
             
             _morrisToPersistance.AddLast(syn);
 
-            Synapse syn2 = new SynapseSameness(m, p, Constants.MORRIS_TO_SAMENESS_W / matrixf[index],
+            Synapse syn2 = new SynapseSameness(m, p, Constants.MORRIS_TO_SAMENESS_W / (Constants.start_freq + index * Constants.incr_freq),
                                     Constants.MORRIS_TO_SAMENESS_TAU1,
                                     Constants.MORRIS_TO_SAMENESS_DELAY_STEP,
                                     Constants.MORRIS_TO_SAMENESS_SYNAPTIC_GAIN);
@@ -328,7 +322,7 @@ namespace SLN
                 if (m.COLUMN == target)
                 {
                     //double calculus = matrixf[target] / 2 + 1;
-                    double threshold = Math.Round(matrixf[target] / 2, 0, MidpointRounding.ToEven) + 1;
+                    double threshold = Math.Round((Constants.start_freq + target * Constants.incr_freq) / 2, 0, MidpointRounding.ToEven) + 1;
                     return threshold;
                 }
             }
@@ -337,10 +331,10 @@ namespace SLN
         }
 
         public double getMatrixf(int index) {
-            if (index > matrixf.Length-1)
+            if (index > _neurons.Count-1)
                 return -1;
             else
-                return matrixf[index];
+                return (Constants.start_freq + index * Constants.incr_freq);
         }
 
     }

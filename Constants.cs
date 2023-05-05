@@ -6,7 +6,14 @@
 	public class Constants
 	{
         public const int LOGGING_RATE = 100; //salvo su file ogni 100 passi
-        public const int DEBUG = 1;
+        public const int DEBUG = 0;
+        public const double start_freq = 5; //con step 5 riesce fino a 6 input, con step 3 almeno il doppio
+        public const double incr_freq = 3;
+        public const double KF = 0.35; 
+        public const double KI = 70;
+
+
+    
         #region Network geometry
         /// <summary>
         /// Number of rows in the first layer

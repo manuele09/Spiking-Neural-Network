@@ -195,7 +195,7 @@ namespace SLN
 
             #region testing
             System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Testing *** *** *** ****** *** *** ****** *** ***");
-            net = BinarySerialization.ReadFromBinaryFile<Network>(net_path + 1 + ".bin");
+            //net = BinarySerialization.ReadFromBinaryFile<Network>(net_path + 1 + ".bin");
 
             List<NetworkInput> test_sequenza = new List<NetworkInput>();
             List<string> str_test_sequenza = new List<string>();

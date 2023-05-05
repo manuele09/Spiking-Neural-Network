@@ -543,6 +543,7 @@ namespace SLN
 
                     //W=Zinverse*target
                     double[] _target = new double[Constants.SIMULATION_STEPS_LIQUID];
+                    double[] _target2 = new double[Constants.SIMULATION_STEPS_LIQUID];
                     //String pathTarget = "target" + simulationNumber + ".txt";
                     String pathTarget = "target_default_" + target + ".txt";
                     StreamReader sr2 = new StreamReader(pathTarget);
@@ -560,12 +561,18 @@ namespace SLN
                         {
                             //double valueTarget = double.Parse(coords[0]);
                             double valueTarget = double.Parse(str);
-                            _target[index] = valueTarget;
+                            _target2[index] = valueTarget;
                         }
                         else
                             break;
 
                         str = sr2.ReadLine();
+                    }
+
+                    for (int i = 0; i < Constants.SIMULATION_STEPS_LIQUID; i++)
+                    {
+                        _target[i] = (double)Math.Sin(i * 2 * Math.PI * (Constants.start_freq + target*Constants.incr_freq) * 0.001 / Constants.INTEGRATION_STEP_MORRIS_LECAR) / 100;
+                         //Console.WriteLine("Sinusoide " + ((target + 1) * Constants.start_freq) + ": " + (_target[i] - _target2[i]));
                     }
 
                     double[] W;
@@ -1215,7 +1222,7 @@ namespace SLN
 
                     }
 
-                    target = (double)Math.Sin(((step - Constants.SIMULATION_STEPS_FEEDFORWARD) * 2 * Math.PI * ((signedTarget+1)*5 * 0.001)) / Constants.INTEGRATION_STEP_MORRIS_LECAR) / 100;
+                    target = (double)Math.Sin(((step - Constants.SIMULATION_STEPS_FEEDFORWARD) * 2 * Math.PI * ((Constants.start_freq + target * Constants.incr_freq) * 0.001)) / Constants.INTEGRATION_STEP_MORRIS_LECAR) / 100;
                     ////Da mettere se vogliamo squadrare la sinusoide
                     //if (target > 0)
                     //    target = value;
@@ -1332,7 +1339,7 @@ namespace SLN
                     //_ntarget.I = (signedTarget + 1) * 10;
                     //_ntarget.simulate(step);
 
-                    target = (double)Math.Sin(((step - Constants.SIMULATION_STEPS_FEEDFORWARD) * 2 * Math.PI * ((signedTarget + 1) * 5 * 0.001)) / Constants.INTEGRATION_STEP_MORRIS_LECAR) / 100;
+                    target = (double)Math.Sin(((step - Constants.SIMULATION_STEPS_FEEDFORWARD) * 2 * Math.PI * ((Constants.start_freq + target * Constants.incr_freq) * 0.001)) / Constants.INTEGRATION_STEP_MORRIS_LECAR) / 100;
 
                     //if (target > 0)
                     //    target = value;
@@ -1404,6 +1411,11 @@ namespace SLN
 
             }
             //ricordo che indexWinOut è l'indice del neurone di Morris Lecar Vincente
+            for (int i = 0; i < Constants.CLASSES; i++)
+                if (_outExt.getNeuronMorris(i) != null)
+                    //Console.WriteLine("Frequenza Neurone di morris " + i + ": " + _outExt.getNeuronMorris(i).getFrequency(1000));
+                    Console.WriteLine("Frequenza Neurone di morris " + i + ": " + _outExt.getNeuronMorris(i).NSpikes);
+
             if (indexWinOut != -1)
             {
 
