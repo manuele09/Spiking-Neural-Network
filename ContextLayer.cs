@@ -149,12 +149,12 @@ namespace SLN
                     for (int i = 0; i <= destNeuron.COLUMN; i++)
                         _ringToMorris.AddLast(new SynapseSTDP(m, outlayer.getNeuronMorris(i),
                                           Constants.CONTEXT_TO_MORRIS_GAIN_STDP,
-                                          Constants.CONTEXT_TO_MORRIS_GAIN, 0));
+                                          Constants.CONTEXT_TO_MORRIS_GAIN, Constants.CONTEXT_TO_MORRIS_Weight));
                 }
                 else
                     _ringToMorris.AddLast(new SynapseSTDP(m, destNeuron,
                                          Constants.CONTEXT_TO_MORRIS_GAIN_STDP,
-                                         Constants.CONTEXT_TO_MORRIS_GAIN, 0));
+                                         Constants.CONTEXT_TO_MORRIS_GAIN, Constants.CONTEXT_TO_MORRIS_Weight));
             }
 
 
@@ -263,12 +263,12 @@ namespace SLN
                         for (int k = 0; k <= destNeuron.COLUMN; k++)
                             _ringToMorris.AddLast(new SynapseSTDP(m, outlayer.getNeuronMorris(k),
                                               Constants.CONTEXT_TO_MORRIS_GAIN_STDP,
-                                              Constants.CONTEXT_TO_MORRIS_GAIN, 0));
+                                              Constants.CONTEXT_TO_MORRIS_GAIN, Constants.CONTEXT_TO_MORRIS_Weight));
                     }
                     else
                         _ringToMorris.AddLast(new SynapseSTDP(m, destNeuron,
                                              Constants.CONTEXT_TO_MORRIS_GAIN_STDP,
-                                             Constants.CONTEXT_TO_MORRIS_GAIN, 0));
+                                             Constants.CONTEXT_TO_MORRIS_GAIN, Constants.CONTEXT_TO_MORRIS_Weight));
 
                 }
             }
@@ -957,7 +957,7 @@ namespace SLN
                     if (s.Dest.COLUMN == outlayer.getWinnerNeuron() && s.Start.is_winner_old && s.Start.ROW < t)
                     {
 
-                        s.setW(60 + 90, 50);
+                        s.setW(70 + 90, 50);
 
 
                         if (logSTDP != null)
@@ -966,7 +966,7 @@ namespace SLN
                     else
                     {
                         if (s.Start.is_winner_old && s.Start.ROW < t)
-                            s.setW(-60 - 90, 50);
+                            s.setW(-70 - 90, 50);
                     }
 
                 }

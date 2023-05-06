@@ -282,16 +282,6 @@ namespace SLN
                 y = I_Const;
             else y = -I_Const;
 
-            ////Da mettere se usiamo il Sum in modo non lineare
-            //double y = I_Sum;
-            //if (y > I_Const + 200)      //(questo vale solo se cerco di apprendere l'onda quadra con il sommatore classico) metto questa if perchè altrimenti ho problemi nel plot in quanto i neuroni sommatori degli altri target raggiungono valori altissimi portandomi in saturazione e a valori incredibili pure il morris 
-            //    y = I_Const;
-            //else
-            //{
-            //    if (y < -I_Const - 200)
-            //        y = -I_Const;
-            //}
-
             y += I;
 
 

@@ -921,6 +921,8 @@
         /// </summary>
         public const double CONTEXT_TO_MORRIS_GAIN = 10.0;
 
+        public const double CONTEXT_TO_MORRIS_Weight = 0;
+
         #endregion
 
         #region Motor-to-Motor

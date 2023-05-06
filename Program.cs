@@ -186,16 +186,16 @@ namespace SLN
             prima_targets.Add(2);
             prima_targets.Add(3);
 
-            for (int l = 0; l < 0; l++)
+            for (int l = 0; l < 2; l++)
             {
                 SimulateInputs(net, prima_sequenza, str_prima_sequenza, prima_targets, 1);
-                BinarySerialization.WriteToBinaryFile<Network>(net_path + l + ".bin", net);
+                //BinarySerialization.WriteToBinaryFile<Network>(net_path + l + ".bin", net);
             }
             #endregion
 
             #region testing
             System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Testing *** *** *** ****** *** *** ****** *** ***");
-            net = BinarySerialization.ReadFromBinaryFile<Network>(net_path + 1 + ".bin");
+            //net = BinarySerialization.ReadFromBinaryFile<Network>(net_path + 1 + ".bin");
 
             List<NetworkInput> test_sequenza = new List<NetworkInput>();
             List<string> str_test_sequenza = new List<string>();
