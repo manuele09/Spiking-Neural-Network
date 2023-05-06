@@ -24,6 +24,7 @@ using System.Runtime.InteropServices;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Accord.Statistics.Models;
+using System.Windows.Input;
 
 namespace SLN
 {
@@ -161,7 +162,8 @@ namespace SLN
             #endregion
 
             Network net = Network.generateNetwork();
-            
+           // net = BinarySerialization.ReadFromBinaryFile<Network>(net_path + 0 + ".bin");
+
             #region learning
             System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Learning *** *** *** ****** *** *** ****** *** ***");
 
@@ -169,17 +171,17 @@ namespace SLN
             List<NetworkInput> prima_sequenza = new List<NetworkInput>();
             List<string> str_prima_sequenza = new List<string>();
             List<int> prima_targets = new List<int>();
-            
+
             prima_sequenza.Add(BlueRectangleDx);
             prima_sequenza.Add(RedRectangleSx);
             prima_sequenza.Add(BlueCircleSx);
             prima_sequenza.Add(RedCircleSxEnd3);
-            
+
             str_prima_sequenza.Add("Blue Rectangle Dx");
             str_prima_sequenza.Add("Red Rectangle Sx");
             str_prima_sequenza.Add("Blue Circle Sx");
             str_prima_sequenza.Add("Red Circle Sx End3");
-            
+
             prima_targets.Add(0);
             prima_targets.Add(1);
             prima_targets.Add(2);
@@ -204,14 +206,14 @@ namespace SLN
             List<string> str_terza_sequenza = new List<string>();
             List<int> terza_targets = new List<int>();
 
-            seconda_sequenza.Add(BlueRectangleSx);
-            seconda_sequenza.Add(YellowRectangleSxEnd);
+            terza_sequenza.Add(BlueRectangleSx);
+            terza_sequenza.Add(YellowRectangleSxEnd);
 
-            str_seconda_sequenza.Add("Blue Rectangle Sx");
-            str_seconda_sequenza.Add("Yellow Rectangle Sx End");
+            str_terza_sequenza.Add("Blue Rectangle Sx");
+            str_terza_sequenza.Add("Yellow Rectangle Sx End");
 
-            seconda_targets.Add(0);
-            seconda_targets.Add(5);
+            terza_targets.Add(0);
+            terza_targets.Add(5);
             #endregion
             #region quarta_sequenza
             List<NetworkInput> quarta_sequenza = new List<NetworkInput>();
@@ -230,10 +232,10 @@ namespace SLN
             for (int l = 0; l < 2; l++)
             {
                 net.current_learning++;
-                SimulateInputs(net, prima_sequenza, str_prima_sequenza, prima_targets, 1, 0);
-                SimulateInputs(net, seconda_sequenza, str_seconda_sequenza, seconda_targets, 1, 0);
-                SimulateInputs(net, terza_sequenza, str_terza_sequenza, terza_targets, 1, 0);
-                SimulateInputs(net, quarta_sequenza, str_quarta_sequenza, quarta_targets, 1, 0);
+                SimulateInputs(net, prima_sequenza, str_prima_sequenza, prima_targets, 1);
+                SimulateInputs(net, seconda_sequenza, str_seconda_sequenza, seconda_targets, 1);
+                SimulateInputs(net, terza_sequenza, str_terza_sequenza, terza_targets, 1);
+                SimulateInputs(net, quarta_sequenza, str_quarta_sequenza, quarta_targets, 1);
                 BinarySerialization.WriteToBinaryFile<Network>(net_path + net.current_learning + ".bin", net);
             }
             #endregion
@@ -249,29 +251,22 @@ namespace SLN
             imagination.Add(RedCircle);
             imagination.Add(YellowCircle);
             imagination.Add(YellowRectangle);
-            imagination.Add(inputNull);
-            imagination.Add(inputNull);
-            imagination.Add(inputNull);
-            imagination.Add(inputNull);
-
+            
             str_imagination.Add("Blue Rectangle");
             str_imagination.Add("Red Rectangle");
             str_imagination.Add("Blue Circle");
             str_imagination.Add("Red Circle");
             str_imagination.Add("Yellow Circle");
             str_imagination.Add("Yellow Rectangle");
-            str_imagination.Add("Input Null");
-            str_imagination.Add("Input Null");
-            str_imagination.Add("Input Null");
-            str_imagination.Add("Input Null");
+
 
 
             System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Testing *** *** *** ****** *** *** ****** *** ***");
-            net = BinarySerialization.ReadFromBinaryFile<Network>(net_path + 2 + ".bin");
+            //net = BinarySerialization.ReadFromBinaryFile<Network>(net_path + 4 + ".bin");
 
 
             #region sequenza_test
-            /*List<NetworkInput> test_sequenza = new List<NetworkInput>();
+            List<NetworkInput> test_sequenza = new List<NetworkInput>();
             List<string> str_test_sequenza = new List<string>();
             
             test_sequenza.Add(BlueRectangle);
@@ -285,11 +280,14 @@ namespace SLN
             str_test_sequenza.Add("Input Null");
             str_test_sequenza.Add("Input Null");
             str_test_sequenza.Add("Input Null");
-            */
+            
             #endregion
 
 
-            SimulateInputs(net, imagination, str_imagination, null, 0, 6);
+            //SimulateInputs(net, test_sequenza, str_test_sequenza, null, 0);
+            SimulateInputsImagination(net, imagination, str_imagination, null, 0);
+
+         
 
             #endregion
 
@@ -521,15 +519,16 @@ namespace SLN
 
         }
 
-        public static void SimulateInputs(Network net, List<NetworkInput> inputs, List<string> str_inputs, List<int> target_inputs, int learn, int imagination)
+        public static void SimulateInputs(Network net, List<NetworkInput> inputs, List<string> str_inputs, List<int> target_inputs, int learn)
         {
             String pathPc = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             string output_message;
-            StateLogger sl = new StateLogger(pathPc + @"\Dati\Neurons" + net.current_epoch + ".txt", pathPc + @"\Dati\Synapse" + net.current_epoch + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + net.current_epoch + ".txt", true, false, true);
-            StateLogger slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + net.current_epoch + ".txt", pathPc + @"\Dati\SynapseSTDP" + net.current_epoch + ".txt", false, true);
             for (int i = 0; i < inputs.Count; i++)
             {
-                Console.WriteLine($"*** *** *** ****** *** *** ****** *** *** ****** *** *** ****** *** *** *** Simulazione {net.current_epoch + 1}*** *** *** ****** *** *** ****** *** *** ****** *** *** *** *** *** *** ***");
+                Console.WriteLine($"*** *** *** *** Simulazione {net.current_epoch + 1} *** *** *** ***");
+
+                StateLogger sl = new StateLogger(pathPc + @"\Dati\Neurons" + net.current_epoch + ".txt", pathPc + @"\Dati\Synapse" + net.current_epoch + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + net.current_epoch + ".txt", true, false, true);
+                StateLogger slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + net.current_epoch + ".txt", pathPc + @"\Dati\SynapseSTDP" + net.current_epoch + ".txt", false, true);
 
                 net.resetInputs();
                 net.setInput(inputs[i]);
@@ -540,25 +539,60 @@ namespace SLN
                     output_message += "; Expected Target: " + target_inputs[i];
                 Console.WriteLine(output_message);
 
-                if (learn == 0 && i >= imagination) 
-                    Console.WriteLine("Sim started at " + DateTime.Now);
+                Console.WriteLine("Sim started at " + DateTime.Now);
                 if (learn == 1)
                     net.learnLiquid(sl, slStdp, net.current_epoch);
                 else
-                {
-                    if (i >= imagination)
-                        net.testLiquid(sl, slStdp, net.current_epoch);
-                }
-                if (learn == 0 && i >= imagination)
-                    Console.WriteLine("Sim finished at " + DateTime.Now);
+                    net.testLiquid(sl, slStdp, net.current_epoch);
+                Console.WriteLine("Sim finished at " + DateTime.Now);
 
-                if (learn == 0 && i >= imagination)
-                {
-                    net.current_epoch++;
-                    sl = new StateLogger(pathPc + @"\Dati\Neurons" + net.current_epoch + ".txt", pathPc + @"\Dati\Synapse" + net.current_epoch + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + net.current_epoch + ".txt", true, false, true);
-                    slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + net.current_epoch + ".txt", pathPc + @"\Dati\SynapseSTDP" + net.current_epoch + ".txt", false, true);
-                }
+                net.current_epoch++;
             }
         }
+
+        public static void SimulateInputsImagination(Network net, List<NetworkInput> inputs, List<string> str_inputs, List<int> target_inputs, int learn)
+        {
+            String pathPc = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            string output_message;
+            int prima = 0;
+
+            for (int i = 0; i < Constants.RINGS; i++)
+            {
+                Console.WriteLine($"*** *** *** *** Simulazione {net.current_epoch + 1} *** *** *** ***");
+
+                StateLogger sl = new StateLogger(pathPc + @"\Dati\Neurons" + net.current_epoch + ".txt", pathPc + @"\Dati\Synapse" + net.current_epoch + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + net.current_epoch + ".txt", true, false, true);
+                StateLogger slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + net.current_epoch + ".txt", pathPc + @"\Dati\SynapseSTDP" + net.current_epoch + ".txt", false, true);
+
+                net.resetInputs();
+                if (prima == 0)
+                {
+                    Console.WriteLine("Fase di Imagination.");
+                    for (int j = 0; j < inputs.Count; j++)
+                    {
+                        output_message = "\t\t\t\t\t\t\t\t" + (j + 1) + "o Input Dato";
+                        if (str_inputs != null)
+                            output_message += ": " + str_inputs[j];
+                        if (target_inputs != null)
+                            output_message += "; Expected Target: " + target_inputs[j];
+                        net.setInput(inputs[j]);
+                        Console.WriteLine(output_message);
+                    }
+                    prima++;
+                }
+                else
+                {
+                    Console.WriteLine("Input dato: Null");
+                    net.setInput(new NetworkInput(-1, -1, -1, -1));
+                }
+
+
+                Console.WriteLine("Sim started at " + DateTime.Now);
+                net.testLiquid(sl, slStdp, net.current_epoch);
+                Console.WriteLine("Sim finished at " + DateTime.Now);
+
+                net.current_epoch++;
+            }
+        }
+
     }
 }

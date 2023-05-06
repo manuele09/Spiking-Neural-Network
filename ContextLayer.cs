@@ -34,7 +34,7 @@ namespace SLN
 
 
         LinkedList<AltNeuron>[] neurons = new LinkedList<AltNeuron>[Constants.RINGS];
-        LinkedList<Synapse> _ringToring;
+       // LinkedList<Synapse> _ringToring;
         LinkedList<Synapse> _morrisToRing;
         LinkedList<SynapseSTDP> _ringToOtherRingSTDP;
         LinkedList<Synapse> _ringToOtherRing;
@@ -68,7 +68,7 @@ namespace SLN
             valid = new int[Constants.RINGS + 1];                 // metto un posto in più così conservo pure il risultato dell'end sequence
             for (int i = 0; i < Constants.RINGS; i++)
                 neurons[i] = new LinkedList<AltNeuron>();
-            _ringToring = new LinkedList<Synapse>();
+           // _ringToring = new LinkedList<Synapse>();
             _ringToOtherRingSTDP = new LinkedList<SynapseSTDP>();
             _morrisToMotor = new LinkedList<SynapseSTDP>();
             _ringToOtherRing = new LinkedList<Synapse>();
@@ -273,10 +273,10 @@ namespace SLN
                 }
             }
 
-            _ringToring = new LinkedList<Synapse>();  //cancello tutte le sinapsi e le ricreo per ragioni di facilità di codice altrimenti ogni volta 
+           // _ringToring = new LinkedList<Synapse>();  //cancello tutte le sinapsi e le ricreo per ragioni di facilità di codice altrimenti ogni volta 
                                                       //bisognerebbe aggiungere solo le sinapsi dai neuroni esistenti a questo aggiunto e poi le sinapsy da questo neurone a tutti gli altri esistenti
                                                       //creo le sinapsi inibitorie all'interno dei neuroni dello stesso anello
-            for (int i = 0; i < Constants.RINGS; i++)
+            /*for (int i = 0; i < Constants.RINGS; i++)
             {
                 foreach (AltNeuron n1 in neurons[i])
                 {
@@ -293,7 +293,7 @@ namespace SLN
 
                 }
 
-            }
+            }*/
 
             for (int i = 0; i < Constants.MOTOR; i++)
             {
@@ -410,229 +410,6 @@ namespace SLN
             return nWin;
         }
 
-        ///// <summary>
-        ///// Simulates the Context Layer
-        ///// </summary>
-        ///// <param name="step">The current step of simulation</param>
-        ///// <param name="log">The logger object</param>
-        ///// <param name="sim_number">The number of the simulation</param>
-        //public void simulate(int step, StateLogger log, StateLogger logSTDP, int sim_number, int simNumberInternal, bool end, bool test, int level, int motor)
-        //{
-        //    //Modifiche da fare:
-        //    //0) Il logging non deve essere fatto all'interno dei Parallel per i conflitti.
-        //    //  Si potrebbero fare 3 cose: 
-        //    //      -si possono fare in modo sequenziale dopo i parallel;
-        //    //      -si potrebbe modificare la classe dei Log in modo tale da avere
-        //    //      una struttura che contenga un log per ogni sinapsi/neurone invece che
-        //    //      avere un log per tutti gli elementi. In questo modo non si dovrebbero
-        //    //      avere conflitti nella parallelizzazione.
-        //    //      -utilizzo di una ConcurrentBag, da usare nei Parallel. Cioè nella classe
-        //    //      StateLogger dovrà essere usata questa struttara invece della LinkedList.
-        //    //      Questa forse è la modifica meno radicale, ma anche la più efficente perchè conserva il parallelismo
-        //    //2) Utilizzare la Gpu.
-        //    //3) Approfondire la libreria intel mkl
-        //    //AVANZAMENTO t (varia tra 0 e RINGS-1)
-        //    if (step == Constants.SIMULATION_STEPS_FEEDFORWARD && simNumberInternal == -1)
-        //    {
-        //        //inizialmente t=-1
-        //        t = (t + 1) % Constants.RINGS;
-        //        if (t == 0)
-        //        {
-        //            endSequence();
-        //            t = 0;
-        //        }
-        //    }
-
-        //    //CORRENTE DI BIAS (vincitori epoca precedente)
-        //    for (int i = 0; i < t; i++)
-        //        if (winContextOld[i] != null)
-        //            winContextOld[i].I = 10 * Math.Exp((Constants.SIMULATION_STEPS_FEEDFORWARD - step) * Constants.INTEGRATION_STEP / (400));
-        //    //La Corrente di Bias non deve essere troppo grande, altrimenti questi neuroni prevarranno sempre, anche 
-        //    //sul nuovo input dell'epoca corrente, risultando così eternamente vincitori.
-
-        //    //La parallelizzazione potrebbe essere inefficente perché tra tutti i neuroni di un ring ne 
-        //    //verrà simulato solo uno, gli altri si gireranno i pollici.
-
-
-        //    //END e MOTOR REWARDS
-        //    if (!test)
-        //    {
-        //        if (end && step > Constants.SIMULATION_STEPS_FEEDFORWARD + 500)
-        //        {
-        //            for (int i = 0; i <= t; i++)
-        //            {
-        //                switch (level)
-        //                {
-        //                    case 1:
-        //                        _endSequenceNeurons[i].I = 18;
-        //                        break;
-        //                    case 2:
-        //                        _endSequenceNeurons[i].I = 22;
-        //                        break;
-        //                    case 3:
-        //                        _endSequenceNeurons[i].I = 26;
-        //                        break;
-        //                }
-        //            }
-        //        }
-        //        else
-        //            _endSequenceNeurons[t].I = 0;
-
-        //        if (motor != -1 && step > Constants.SIMULATION_STEPS_FEEDFORWARD + 500)
-        //        {
-
-        //            for (int i = 0; i < Constants.MOTOR; i++)
-        //            {
-        //                if (i == motor)
-        //                {
-        //                    _motorNeurons[i].I = 26;
-
-        //                }
-        //                else
-        //                    _motorNeurons[i].I = 0;
-        //            }
-
-        //        }
-        //        else
-        //            for (int i = 0; i < Constants.MOTOR; i++)
-        //                _motorNeurons[i].I = 0;
-        //    }
-
-        //    //END NEURONS
-        //    for (int i = 0; i < Constants.RINGS; i++)
-        //    {
-        //        _endSequenceNeurons[i].simulate(step);
-        //        if (log != null)
-        //            log.logNeuron(step, _endSequenceNeurons[i]);
-        //    }
-
-        //    //MOTOR NEURONS
-        //    for (int i = 0; i < Constants.MOTOR; i++)
-        //    {
-        //        _motorNeurons[i].simulate(step);
-        //        if (log != null)
-        //            log.logNeuron(step, _motorNeurons[i]);
-        //    }
-
-        //    //MORRIS TO RING
-        //    if (Constants.DEBUG == 1 && step == 999)
-        //        Console.WriteLine("Morris to Ring: " + _morrisToRing.Count);
-        //    Parallel.ForEach(_morrisToRing, s =>
-        //    {
-        //        if (s.Dest.ROW <= t) 
-        //            s.simulate_morris_to_ring(step, 1);
-        //        if (log != null)
-        //            log.logSynapse(s, step);
-        //    });
-        //    //1) Se simulo i neuroni fino al ring t, non ha senso simulare le sinapsi che terminano nei rings > t
-        //    //2) Se abbandoniamo l'idea delle sotto-sequenze si può dare l'input (fornito dai Morris-Lecar) solamente al ring t.
-
-
-        //    //CONTEXT NEURONS (fino al ring t)
-        //    for (int i = 0; i <= t; i++)
-        //    {
-                
-        //        Parallel.ForEach(neurons[i], n1 =>
-        //        {
-
-        //            n1.simulate(step);
-
-        //        });
-        //        if (Constants.DEBUG == 1 && step == 777 && i <= t)
-        //            Console.WriteLine("Neuroni ring " + i + ": " + neurons[i].Count);
-        //    }
-        //    for (int i = 0; i < Constants.RINGS; i++)
-        //    {
-        //        foreach (AltNeuron n1 in neurons[i])
-        //        {
-        //            if (log != null)
-        //                log.logNeuron(step, n1, n1.idp, n1.idt);
-        //        }
-        //    }
-
-        //    //RING TO (same) RING (tranne vincitori)
-        //    /*if (Constants.DEBUG == 1 && step == 999)
-        //        Console.WriteLine("Simulo " + _ringToring.Count + " sinapsi Ring to Ring");
-        //    Parallel.ForEach(_ringToring, s => //sono tutte sinapsi INIBITORIE
-        //    {
-                
-        //        if (!s.Start.is_winner_old && s.Start.ROW <= t)
-        //        {
-        //            s.simulate(step);
-        //            if (log != null)
-        //                log.logSynapse(s, step);
-        //        }
-        //    });
-        //    if (Constants.DEBUG == 1 && step == 999)
-        //        Console.WriteLine("Finito di simulare");*/
-
-
-
-        //    //RING TO OTHER RING (solo vincitori)
-        //    if (sim_number != 0)
-        //    {
-        //        Parallel.ForEach(_ringToOtherRing, s =>
-        //        {
-        //            if (s.Start.is_winner_old && s.Dest.ROW <= t)
-        //            {
-        //                s.simulate(step);
-        //                if (log != null)
-        //                    log.logSynapse(s, step);
-        //            }
-        //        });
-
-        //        Parallel.ForEach(_ringToOtherRingSTDP, s =>
-        //        {
-        //            if (s.Start.is_winner_old && s.Dest.ROW <= t)
-        //            {
-        //                s.simulate(step);
-        //                if (log != null)
-        //                    log.logSynapse(s, step);
-        //            }
-        //        });
-        //    }
-
-        //    //CONTEXT TO END
-        //    Parallel.ForEach(_contextToEndSequence, s =>
-        //    {
-        //        s.simulate_context_to_end(step);
-        //        if (logSTDP != null)
-        //            logSTDP.logSynapse(s, step);
-        //    });
-
-        //    //RING TO MORRIS
-        //    if (test && t > 0)
-        //        Parallel.ForEach(_ringToMorris, s =>
-        //        {
-        //            if (s.Start == winContextOld[t - 1])
-        //            {
-        //                s.simulatecontext(step);
-        //                if (logSTDP != null)
-        //                    logSTDP.logSynapse(s, step);
-        //            }
-        //        });
-
-        //    //CONTEXT TO MOTOR
-        //    Parallel.ForEach(_contextToMotor, s =>
-        //    {
-        //        if (s.Start.ROW == t)
-        //        {
-        //            s.simulate(step);
-        //            if (logSTDP != null)
-        //                logSTDP.logSynapse(s, step);
-        //        }
-        //    });
-
-        //    //MORRIS TO MOTOR
-        //    Parallel.ForEach(_morrisToMotor, s =>
-        //    {
-
-        //        s.simulate_morris_to_motor(step);
-        //        if (logSTDP != null)
-        //            logSTDP.logSynapse(s, step);
-
-        //    });
-        //}
         
         public void simulate(int step, StateLogger log, StateLogger logSTDP, int sim_number, int simNumberInternal, bool end, bool test, int level, int motor)
         {
@@ -954,8 +731,9 @@ namespace SLN
                 {
                     if (s.Dest.COLUMN == outlayer.getWinnerNeuron() && s.Start.is_winner_old && s.Start.ROW < t)
                     {
+                       
 
-                        s.setW(70 + 90, 50);
+                        s.setW(160, 50);
 
 
                         if (logSTDP != null)
@@ -964,7 +742,7 @@ namespace SLN
                     else
                     {
                         if (s.Start.is_winner_old && s.Start.ROW < t)
-                            s.setW(-70 - 90, 50);
+                            s.setW(-160, 50);
                     }
 
                 }

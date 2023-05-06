@@ -28,6 +28,7 @@ namespace SLN
         private double frequencyRewardSequence = -12;
         public int current_epoch;
         public int current_learning;
+        public int primo_test = 0;
 
         // Lists of synapses
         private LinkedList<Synapse> _firstToFirst1;
@@ -865,18 +866,8 @@ namespace SLN
         /// <param name="input">The input of the network</param>
         public void setInput(NetworkInput input)
         {
-            //questo if rappresenta il primo input della fase di test
-            //nota: il simulation number non è stato ancora aggiornato, questo è
-            //il motivo per cui si usa LEARNING_NUMBER -1.
-            if ((simulationNumber == (Constants.LEARNING_NUMBER - 1) && simNumberInternal == -1) || (Constants.LEARNING_NUMBER == 0 && simulationNumber == 0))
-            {
-                countInput.Add(input);
-            }
-            //questo significa che quando vado a fare il primo test
-            //tutti gli input dati prima della prima chiamata a testLiquid 
-            //saranno contenuti in countInput.
-            else countInput.Clear();
-            // Console.WriteLine(countInput.Count);
+            countInput.Add(input);
+            
             currentInput = input;
             _layers.setInput(input);
             //_liquid.setInput(input);
@@ -886,40 +877,7 @@ namespace SLN
         }
 
 
-        /// <summary>
-        /// Sets the inputs of the network all features, plus the reward condition.
-        /// Should be used only once in a simulation
-        /// </summary>
-        /// <param name="input">The input of the network</param>
-        public void setInput(NetworkInput input, int nLearn)
-        {
-            if ((simulationNumber == (nLearn - 1) && simNumberInternal == -1) || (nLearn == 0))
-                countInput.Add(input);
-            else countInput.Clear();
 
-            currentInput = input;
-            _layers.setInput(input);
-            //_liquid.setInput(input);
-            _endSequenceReward = input.END;
-            _levelReward = input.REWARDLEVEL;
-            _motor = input.MOTOR;
-        }
-
-
-        /// <summary>
-        /// Sets the inputs of the network all features, plus the reward condition.
-        /// Should be used only once in a simulation
-        /// </summary>
-        /// <param name="color">The value of the <b>COLOR</b> feature</param>
-        /// <param name="size">The value of the <b>SIZE</b> feature</param>
-        /// <param name="hdistr">The value of the <b>HORIZONTAL DISTRIBUTEDNESS</b> feature</param>
-        /// <param name="vdistr">The value of the <b>VERTICAL DISTRIBUTEDNESS</b> feature</param>
-        /// <param name="reward"><i>true</i> if there's a reward associated to this input, <i>false</i> otherwise</param>
-        public void setInput(int color, int size, int hdistr, int vdistr, bool reward, bool end)
-        {
-            currentInput = new NetworkInput(color, size, hdistr, vdistr, reward, end);
-            this.setInput(currentInput);
-        }
 
         /// <summary>
         /// Resets the inputs of the network
@@ -1447,7 +1405,7 @@ namespace SLN
             //_ntarget.resetState();
 
             //Se sono nelle simulazioni del Test devo resettare in ogni caso perchè non ho la possibilità di fare simulazioni interne
-            if (simNumber >= Constants.LEARNING_NUMBER || _liquid.Option == 5)
+            if (test || _liquid.Option == 5)
             {
                 //reset of all neuron 
                 _liquid.resetState();
@@ -1471,6 +1429,7 @@ namespace SLN
                 logSTDP.closeLog();
                 logSTDP.newIteration();
             }
+            countInput.Clear();
 
 
             //return (errorMean / Constants.SIMULATION_STEPS_LIQUID);
@@ -1663,9 +1622,9 @@ namespace SLN
             }
 
             simNumberInternal = -1;
-            Console.WriteLine("\t\t\t\t\t\t\t\tNeurone vincitoree: " + indexWinOut);
-            Console.WriteLine("\t\t\t\t\t\t\t\tFrequenza End Neuronn: " + frequencyRewardSequence);
-            Console.WriteLine("\t\t\t\t\t\t\t\tNeurone Motore vincitoree: " + feat[feat.Length - 1] + "\n\n");
+            Console.WriteLine("\t\t\t\t\t\t\t\tNeurone vincitore: " + indexWinOut);
+            Console.WriteLine("\t\t\t\t\t\t\t\tFrequenza End Neuron: " + frequencyRewardSequence);
+            Console.WriteLine("\t\t\t\t\t\t\t\tNeurone Motore vincitore: " + feat[feat.Length - 1] + "\n\n");
 
 
 
@@ -1716,16 +1675,14 @@ namespace SLN
             int contatore;
             List<NetworkInput> lista_input = new List<NetworkInput>(countInput);
             //reset the context
-            if (simNumber == Constants.LEARNING_NUMBER) //eseguito per il primo test in assoluto
+            if (primo_test == 0) //eseguito per il primo test in assoluto
             {
-                //_context.reset_win_context_old();
                 _context.endSequence();
                 _context.nullValid();
+                primo_test = 1; 
             }
 
-            /*if (simNumber == Constants.LEARNING_NUMBER && countInput.Count > 1)
-                this.imaginationLiquid(countInput);*/
-            if (simNumber == Constants.LEARNING_NUMBER && lista_input.Count > 1)
+            if (lista_input.Count > 1)
             {
                 Console.WriteLine("********************Imagination**************************");
                 for (int i = 0; i < lista_input.Count; i++)
@@ -1776,36 +1733,6 @@ namespace SLN
             Console.WriteLine("\t\t\t\t\t\t\t\tFrequenza End Neuron: " + frequencyRewardSequence);
             Console.WriteLine("\t\t\t\t\t\t\t\tNeurone Motore vincitore: " + feat[feat.Length - 1] + "\n\n");
 
-        }
-
-
-        /// <summary>
-        /// Simulates the network for testing (logging the results for STDP synapses)
-        /// </summary>
-        /// <param name="log">The logger object</param>
-        /// <param name="simNumber">Number of the simulation (0-based)</param>
-        public void testLiquid(StateLogger log, StateLogger logSTDP, int simNumber, int nLearn)
-        {
-            simulationNumber = simNumber;
-
-            //reset the context
-            if (simNumber == nLearn)
-                _context.endSequence();
-
-            if (simNumber == nLearn && countInput.Count > 1)
-                this.imaginationLiquid(countInput);
-
-            this.simulateLiquid(log, logSTDP, simNumber, -1, false, 0, true);
-        }
-
-        /// <summary>
-        /// Simulates the network for testing
-        /// <param name="simNumber">Number of the simulation (0-based)</param>
-        /// </summary>
-        public void testLiquid(int simNumber)
-        {
-            simulationNumber = simNumber;
-            this.simulateLiquid(null, null, simNumber, 0, false, 0, true);
         }
 
 
