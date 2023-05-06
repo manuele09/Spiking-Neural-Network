@@ -139,6 +139,7 @@ namespace SLN
 
 
             NetworkInput RedRectangleSx = new NetworkInput(1, 1, -1, -1, 1, false, -1);
+            NetworkInput RedRectangleDx = new NetworkInput(1, 1, -1, -1, 0, false, -1);
             NetworkInput RedRectangleSxEnd = new NetworkInput(1, 1, -1, -1, 1, true, 1);
             NetworkInput RedRectangleDxEnd = new NetworkInput(1, 1, -1, -1, 0, true, 2);
 
@@ -164,6 +165,7 @@ namespace SLN
             #region learning
             System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Learning *** *** *** ****** *** *** ****** *** ***");
 
+            #region prima_sequenza
             List<NetworkInput> prima_sequenza = new List<NetworkInput>();
             List<string> str_prima_sequenza = new List<string>();
             List<int> prima_targets = new List<int>();
@@ -171,25 +173,67 @@ namespace SLN
             prima_sequenza.Add(BlueRectangleDx);
             prima_sequenza.Add(RedRectangleSx);
             prima_sequenza.Add(BlueCircleSx);
-            prima_sequenza.Add(BlueCircleSx);
-            prima_sequenza.Add(RedCircleSxEnd);
+            prima_sequenza.Add(RedCircleSxEnd3);
             
             str_prima_sequenza.Add("Blue Rectangle Dx");
             str_prima_sequenza.Add("Red Rectangle Sx");
             str_prima_sequenza.Add("Blue Circle Sx");
-            str_prima_sequenza.Add("Blue Circle Sx");
-            str_prima_sequenza.Add("Red Circle Sx End");
+            str_prima_sequenza.Add("Red Circle Sx End3");
             
             prima_targets.Add(0);
             prima_targets.Add(1);
             prima_targets.Add(2);
-            prima_targets.Add(2);
             prima_targets.Add(3);
+            #endregion
+            #region seconda_sequenza
+            List<NetworkInput> seconda_sequenza = new List<NetworkInput>();
+            List<string> str_seconda_sequenza = new List<string>();
+            List<int> seconda_targets = new List<int>();
 
+            seconda_sequenza.Add(YellowCircleSx);
+            seconda_sequenza.Add(YellowRectangleDxEnd);
+
+            str_seconda_sequenza.Add("Yellow Circle Sx");
+            str_seconda_sequenza.Add("Yellow Rectangle Dx End");
+
+            seconda_targets.Add(4);
+            seconda_targets.Add(5);
+            #endregion
+            #region terza_sequenza
+            List<NetworkInput> terza_sequenza = new List<NetworkInput>();
+            List<string> str_terza_sequenza = new List<string>();
+            List<int> terza_targets = new List<int>();
+
+            seconda_sequenza.Add(BlueRectangleSx);
+            seconda_sequenza.Add(YellowRectangleSxEnd);
+
+            str_seconda_sequenza.Add("Blue Rectangle Sx");
+            str_seconda_sequenza.Add("Yellow Rectangle Sx End");
+
+            seconda_targets.Add(0);
+            seconda_targets.Add(5);
+            #endregion
+            #region quarta_sequenza
+            List<NetworkInput> quarta_sequenza = new List<NetworkInput>();
+            List<string> str_quarta_sequenza = new List<string>();
+            List<int> quarta_targets = new List<int>();
+
+            quarta_sequenza.Add(YellowCircleDx);
+            quarta_sequenza.Add(RedRectangleDxEnd);
+
+            str_quarta_sequenza.Add("Yellow Circle Dx");
+            str_quarta_sequenza.Add("Red Rectangle Dx End");
+
+            quarta_targets.Add(4);
+            quarta_targets.Add(1);
+            #endregion
             for (int l = 0; l < 2; l++)
             {
                 SimulateInputs(net, prima_sequenza, str_prima_sequenza, prima_targets, 1);
-                //BinarySerialization.WriteToBinaryFile<Network>(net_path + l + ".bin", net);
+                SimulateInputs(net, seconda_sequenza, str_seconda_sequenza, seconda_targets, 1);
+                SimulateInputs(net, terza_sequenza, str_terza_sequenza, terza_targets, 1);
+                SimulateInputs(net, quarta_sequenza, str_quarta_sequenza, quarta_targets, 1);
+                BinarySerialization.WriteToBinaryFile<Network>(net_path + net.current_learning++ + ".bin", net);
             }
             #endregion
 
@@ -214,7 +258,7 @@ namespace SLN
 
 
             
-            SimulateInputs(net, test_sequenza, str_test_sequenza, prima_targets, 0);
+            //SimulateInputs(net, test_sequenza, str_test_sequenza, prima_targets, 0);
 
             #endregion
 

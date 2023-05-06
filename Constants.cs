@@ -80,7 +80,7 @@
         /// <summary>
         /// Number of ring in the context layer
         /// </summary>
-        public const int RINGS = 5;
+        public const int RINGS = 4;
         public const int CLASSES = 4;
 
         /// <summary>

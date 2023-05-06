@@ -27,6 +27,7 @@ namespace SLN
         private int simNumberInternal;
         private double frequencyRewardSequence = -12;
         public int current_epoch;
+        public int current_learning;
 
         // Lists of synapses
         private LinkedList<Synapse> _firstToFirst1;
@@ -129,6 +130,7 @@ namespace SLN
         private void init()
         {
             current_epoch = 0;
+            current_learning = 0;
             _layers = new Layers();
             _liquid = new LiquidState();
             _outExt = new OutputLayerExternal();
@@ -545,37 +547,12 @@ namespace SLN
 
                     //W=Zinverse*target
                     double[] _target = new double[Constants.SIMULATION_STEPS_LIQUID];
-                    double[] _target2 = new double[Constants.SIMULATION_STEPS_LIQUID];
-                    //String pathTarget = "target" + simulationNumber + ".txt";
-                    String pathTarget = "target_default_" + target + ".txt";
-                    StreamReader sr2 = new StreamReader(pathTarget);
-                    int index = -1;
-                    str = sr2.ReadLine();
+                    
 
-                    while (str != null)
-                    {
-                        //string[] coords = str.Split(new char[] { '\t', ' ' });
-                        //coords[0] = coords[0].Replace('.', ',');
-                        str = str.Replace('.', ',');
-                        index++;
-
-                        if (index < Constants.SIMULATION_STEPS_LIQUID)
-                        {
-                            //double valueTarget = double.Parse(coords[0]);
-                            double valueTarget = double.Parse(str);
-                            _target2[index] = valueTarget;
-                        }
-                        else
-                            break;
-
-                        str = sr2.ReadLine();
-                    }
+                   
 
                     for (int i = 0; i < Constants.SIMULATION_STEPS_LIQUID; i++)
-                    {
                         _target[i] = (double)Math.Sin(i * 2 * Math.PI * (Constants.start_freq + target*Constants.incr_freq) * 0.001 / Constants.INTEGRATION_STEP_MORRIS_LECAR) / 100;
-                         //Console.WriteLine("Sinusoide " + ((target + 1) * Constants.start_freq) + ": " + (_target[i] - _target2[i]));
-                    }
 
                     double[] W;
 
