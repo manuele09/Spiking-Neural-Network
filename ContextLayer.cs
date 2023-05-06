@@ -888,9 +888,7 @@ namespace SLN
         /// </summary>
         internal double getFrequencyEndSequence(int timestamp)
         {
-            Console.WriteLine("Ring Frequenza End: " + t);
             return _endSequenceNeurons[t].getFrequencyEnd(timestamp);
-
         }
 
 

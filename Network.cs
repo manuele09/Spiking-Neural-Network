@@ -130,7 +130,7 @@ namespace SLN
         private void init()
         {
             current_epoch = 0;
-            current_learning = 0;
+            current_learning = -1;
             _layers = new Layers();
             _liquid = new LiquidState();
             _outExt = new OutputLayerExternal();
@@ -544,12 +544,7 @@ namespace SLN
                     var Ztraspost = Z.Transpose();
                     var Zinverse = Ztraspost.PseudoInverse();
 
-
-                    //W=Zinverse*target
                     double[] _target = new double[Constants.SIMULATION_STEPS_LIQUID];
-                    
-
-                   
 
                     for (int i = 0; i < Constants.SIMULATION_STEPS_LIQUID; i++)
                         _target[i] = (double)Math.Sin(i * 2 * Math.PI * (Constants.start_freq + target*Constants.incr_freq) * 0.001 / Constants.INTEGRATION_STEP_MORRIS_LECAR) / 100;
@@ -1389,12 +1384,18 @@ namespace SLN
 
 
             }
-            //ricordo che indexWinOut è l'indice del neurone di Morris Lecar Vincente
-            for (int i = 0; i < Constants.CLASSES; i++)
-                if (_outExt.getNeuronMorris(i) != null)
-                    //Console.WriteLine("Frequenza Neurone di morris " + i + ": " + _outExt.getNeuronMorris(i).getFrequency(1000));
-                    Console.WriteLine("Frequenza Neurone di morris " + i + ": " + _outExt.getNeuronMorris(i).NSpikes);
+            if (Constants.MORRIS_FREQUENCIES == 1)
+            {
+                Console.WriteLine("\n----------------------------");
+                Console.WriteLine("Conteggio Spikes Neuroni di Morris Lecar:");
+                for (int i = 0; i < Constants.CLASSES; i++)
+                    if (_outExt.getNeuronMorris(i) != null)
+                        Console.WriteLine("Neurone " + i + ": " + _outExt.getNeuronMorris(i).NSpikes);
+                Console.WriteLine("----------------------------\n");
 
+            }
+
+            //ricordo che indexWinOut è l'indice del neurone di Morris Lecar Vincente
             if (indexWinOut != -1)
             {
 
@@ -1601,7 +1602,7 @@ namespace SLN
             simNumberInternal++;
             while (errorLearn == -1 && simNumberInternal <= 2)
             {
-                Console.WriteLine("Learning non riuscito, in atto un nuovo tentantivo.");
+                //Console.WriteLine("\nLearning non riuscito, in atto un nuovo tentantivo.\n");
 
                
                 setOption(3);   
