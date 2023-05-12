@@ -229,7 +229,7 @@ namespace SLN
             quarta_targets.Add(4);
             quarta_targets.Add(1);
             #endregion
-            for (int l = 0; l < 2; l++)
+            for (int l = 0; l < 1; l++)
             {
                 net.current_learning++;
                 SimulateInputs(net, prima_sequenza, str_prima_sequenza, prima_targets, 1);
@@ -284,8 +284,8 @@ namespace SLN
             #endregion
 
 
-            //SimulateInputs(net, test_sequenza, str_test_sequenza, null, 0);
-            SimulateInputsImagination(net, imagination, str_imagination, null, 0);
+            SimulateInputs(net, test_sequenza, str_test_sequenza, null, 0);
+            //SimulateInputsImagination(net, imagination, str_imagination, null, 0);
 
          
 
