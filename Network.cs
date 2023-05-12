@@ -17,7 +17,6 @@ namespace SLN
     [Serializable]
     public class Network
     {
-        private bool _endSequenceReward;
         private int _levelReward;
         private int _motor;
         private bool _expCheck;
@@ -25,7 +24,6 @@ namespace SLN
         private List<NetworkInput> countInput;
         private int simulationNumber;
         private int simNumberInternal;
-        private double frequencyRewardSequence = -12;
         public int current_epoch;
         public int current_learning;
         public int primo_test = 0;
@@ -42,7 +40,7 @@ namespace SLN
         private Layers _layers;
         private LiquidState _liquid;
         private OutputLayerExternal _outExt;
-        private ContextLayer _context;
+
 
 
         //winner first
@@ -135,8 +133,6 @@ namespace SLN
             _layers = new Layers();
             _liquid = new LiquidState();
             _outExt = new OutputLayerExternal();
-            _context = new ContextLayer(_outExt);
-            _context.addPath(_outExt.getNeuronMorris(0));
 
             _firstToFirst1 = new LinkedList<Synapse>();
             _firstToFirstSTDP = new LinkedList<Synapse>();
@@ -151,15 +147,12 @@ namespace SLN
             rand = new Random(10000);
 
 
-            _endSequenceReward = false;
-            _levelReward = 1;
             _expCheck = false;
             _motor = -1;
             countInput = new List<NetworkInput>();
 
             simulationNumber = 0;
             simNumberInternal = -1;
-            frequencyRewardSequence = 0;
             indexWinOut = -1;
             MLtoInput = new int[Constants.CLASSES, 4];
             for (int i = 0; i < Constants.CLASSES; i++)
@@ -871,8 +864,6 @@ namespace SLN
             currentInput = input;
             _layers.setInput(input);
             //_liquid.setInput(input);
-            _endSequenceReward = input.END;
-            _levelReward = input.REWARDLEVEL;
             _motor = input.MOTOR;
         }
 
@@ -886,7 +877,6 @@ namespace SLN
         {
             _layers.resetInputs();
             //_liquid.resetInputs();
-            _endSequenceReward = false;
         }
 
 
@@ -1200,7 +1190,6 @@ namespace SLN
                     _layers.simulateFirst1(step, log);
                     _liquid.simulate(step, log, simNumber);
                     _outExt.simulate(step, log, simNumberInternal, integration);
-                    _context.simulate(step, log, logSTDP, simNumber, simNumberInternal, _endSequenceReward, test, _levelReward, _motor);
 
 
 
@@ -1294,7 +1283,6 @@ namespace SLN
 
                     errorMean += Math.Abs(error);
                     _outExt.simulate(step, log, simNumberInternal, integration);
-                    _context.simulate(step, log, logSTDP, simNumber, simNumberInternal, _endSequenceReward, test, _levelReward, _motor);  //risimulo il contesto anche in questo occasione perchè se sono arrivato qui significa che il morris lecar associato all'elemento non ha sparato nel caso precedente e quindi il contesto non si è aggiornato correttamente
 
 
 
@@ -1371,37 +1359,19 @@ namespace SLN
                     for (int i = 0; i < 4; i++)
                         feat[i] = MLtoInput[indexWinOut, i];
 
-                    feat[feat.Length - 1] = _context.getWinnerMotor(Constants.SIMULATION_STEPS_FEEDFORWARD + Constants.SIMULATION_STEPS_LIQUID);
-                    frequencyRewardSequence = _context.getFrequencyEndSequence(Constants.SIMULATION_STEPS_FEEDFORWARD + Constants.SIMULATION_STEPS_LIQUID);
                     //reset of all neuron 
                     _liquid.resetState();
                     _layers.resetNeuronsState();
-                    if (!test)
-                        _context.learn(logSTDP, Constants.SIMULATION_STEPS_LIQUID + Constants.SIMULATION_STEPS_FEEDFORWARD - 1, _endSequenceReward, _motor);
-                    _context.winContextOld = _context.getWinnerContext(Constants.SIMULATION_STEPS_LIQUID + Constants.SIMULATION_STEPS_FEEDFORWARD - 1, 1);
-                    if (_context.isEndSequence())
-                    {
-                        // Console.WriteLine("Simulate network: Resetto il contesto");
-                        _context.endSequence();
-                    }
+                    
                 }
                 else
                 {
                     indexWinOut = -1;
                 }
             }
-            else
-            {
-                frequencyRewardSequence = -1;
-                _context.nullValid();
-                //non si dovrebbe anche chiamare end sequence?
 
-            }
-            //else if (test) {
-            //    _context.winContextOld = _context.getWinnerContext(Constants.SIMULATION_STEPS_LIQUID + Constants.SIMULATION_STEPS_FEEDFORWARD - 1);                   
-            //}
+      
             _outExt.resetState();
-            _context.resetNeuronsState();
             //_ntarget.resetState();
 
             //Se sono nelle simulazioni del Test devo resettare in ogni caso perchè non ho la possibilità di fare simulazioni interne
@@ -1623,8 +1593,7 @@ namespace SLN
 
             simNumberInternal = -1;
             Console.WriteLine("\t\t\t\t\t\t\t\tNeurone vincitore: " + indexWinOut);
-            Console.WriteLine("\t\t\t\t\t\t\t\tFrequenza End Neuron: " + frequencyRewardSequence);
-            Console.WriteLine("\t\t\t\t\t\t\t\tNeurone Motore vincitore: " + feat[feat.Length - 1] + "\n\n");
+           // Console.WriteLine("\t\t\t\t\t\t\t\tNeurone Motore vincitore: " + feat[feat.Length - 1] + "\n\n");
 
 
 
@@ -1669,69 +1638,11 @@ namespace SLN
         {
             // Console.WriteLine("\t\tsim: " + simulationNumber);   
             simulationNumber = simNumber;
-            double end_freq = 0;
-            int winner = 0;
-            int sim;
-            int contatore;
-            List<NetworkInput> lista_input = new List<NetworkInput>(countInput);
-            //reset the context
-            if (primo_test == 0) //eseguito per il primo test in assoluto
-            {
-                _context.endSequence();
-                _context.nullValid();
-                primo_test = 1; 
-            }
 
-            if (lista_input.Count > 1)
-            {
-                Console.WriteLine("********************Imagination**************************");
-                for (int i = 0; i < lista_input.Count; i++)
-                {
-                    Console.WriteLine("-------------------Simulo Input---------------: " + i);
-                    sim = 0;
-                    resetInputs();
-                    _context.endSequence();
-                    _context.nullValid();
-                    setInput(lista_input[i]);
-                    contatore = 0;
-                    do
-                    {
-                        Console.WriteLine("     Simulo internamente: " + sim);
-                        if (sim != 0)
-                        {
-                            resetInputs();
-                            setInput(new NetworkInput(-1, -1, -1, -1));
-                        }
-                        this.simulateLiquid(null, null, simNumber + i, -1, false, 0, true);
-                        Console.WriteLine("\t\t\t\t\t\t\t\tNeurone vincitore: " + indexWinOut);
-                        Console.WriteLine("\t\t\t\t\t\t\t\tFrequenza End Neuron: " + frequencyRewardSequence);
-                        Console.WriteLine("\t\t\t\t\t\t\t\tNeurone Motore vincitore: " + feat[feat.Length - 1] + "\n\n");
-                        sim++;
-                        contatore++;
-                        if (this.getEndSequenceFrequency() > end_freq)
-                        {
-                            end_freq = this.getEndSequenceFrequency();
-                            winner = i;
-                        }
-
-                    } while (this.getEndSequenceFrequency() == 0 || contatore < 4);
-                }
-                resetInputs();
-                setInput(lista_input[winner]);
-                _context.endSequence();
-                _context.nullValid();
-                Console.WriteLine("Input scelto = " + winner);
-                Console.WriteLine("********************Fine Imagination**************************");
-            }
-            /*if (indexWinOut == -1) //se l'input non è stato riconoscuto resetto il context
-            {
-                _context.endSequence();
-                _context.nullValid();
-            }*/
+   
             this.simulateLiquid(log, logSTDP, simNumber, -1, false, 0, true);
             Console.WriteLine("\t\t\t\t\t\t\t\tNeurone vincitore: " + indexWinOut);
-            Console.WriteLine("\t\t\t\t\t\t\t\tFrequenza End Neuron: " + frequencyRewardSequence);
-            Console.WriteLine("\t\t\t\t\t\t\t\tNeurone Motore vincitore: " + feat[feat.Length - 1] + "\n\n");
+            //Console.WriteLine("\t\t\t\t\t\t\t\tNeurone Motore vincitore: " + feat[feat.Length - 1] + "\n\n");
 
         }
 
@@ -1741,16 +1652,7 @@ namespace SLN
 
 
 
-        /// <summary>
-        /// Returns the frequency of the end neuron
-        /// </summary>
-        /// <returns>The frequency of the end neuron, calculated
-        /// at the last step of simulation</returns>
-        public double getEndSequenceFrequency()
-        {
-            //return _layers._endSequenceNeuron.getFrequency(Constants.SIMULATION_STEPS_A);
-            return frequencyRewardSequence;
-        }
+     
 
         /// <summary>
         /// Creates a new network, reading its status information from file
@@ -1811,88 +1713,6 @@ namespace SLN
 
 
 
-        /// <summary>
-        /// Function to indentify the greater reward sequence 
-        /// </summary>
-        private void imaginationLiquid(List<NetworkInput> listInput)
-        {
-            //_layers.resetInputs();
-            double[] rewardSeq = new double[listInput.Count];
-            int simNumberImg;
-            NetworkInput inputNull = new NetworkInput(-1, -1, -1, -1);
-            List<NetworkInput> lista_input = new List<NetworkInput>();
-            for (int i = 0; i < listInput.Count; i++)
-                lista_input.Add(listInput[i]);
-
-
-            for (int i = 0; i < lista_input.Count; i++)
-            {
-                _context.endSequence(); //aggiunta io
-                _context.nullValid(); //aggiunta io, provare a metterle alla fine
-                resetInputs();
-                setInput(lista_input[i]);
-                currentInput = lista_input[i];
-                //_layers.setInput(listInput[i]);
-
-                //_reward = listInput[i].REWARD;
-                //_endSequenceReward = listInput[i].END;
-
-                if (Constants.ENABLE_OUTPUT)
-                    System.Console.WriteLine("\n *** *** *** *** *** *** *** *** IMAGINATION *** *** *** *** *** *** *** *** \n");
-                simNumberImg = 0;
-                frequencyRewardSequence = 0;
-                while (simNumberImg == 0 || frequencyRewardSequence == 0)
-                {
-                    if (simNumberImg > 0)
-                    {
-                        //currentInput = inputNull;
-                        resetInputs();
-                        setInput(inputNull);
-                        //_layers.setInput(inputNull);
-                        //_reward = false;
-                        //_endSequenceReward = false;
-                    }
-                    Console.WriteLine("Input dato while: " + currentInput);
-                    if (Constants.ENABLE_OUTPUT)
-                        System.Console.WriteLine("\n *** *** *** *** Simulazione Imagination {0} *** *** *** ***\n", simNumberImg + 1);
-                    this.simulateLiquid(null, null, simNumberImg, -1, false, 0, true);
-                    //this.resetInputs();
-                    simNumberImg++;
-                }
-
-                //take the reward sequence
-                rewardSeq[i] = frequencyRewardSequence;
-                Console.WriteLine(" end: " + frequencyRewardSequence + ", input " + i);
-
-            }
-
-            double maxRew = rewardSeq[0];
-            int indexWinnerInput = 0;
-            for (int i = 1; i < lista_input.Count; i++)
-            {
-                if (rewardSeq[i] > maxRew)
-                {
-                    maxRew = rewardSeq[0];
-                    indexWinnerInput = i;
-                }
-            }
-
-            //set the winner Input for the sequence with a greater reward frequency of a sequence
-            //_layers.setInput(listInput[indexWinnerInput]);
-            //_reward = listInput[indexWinnerInput].REWARD;
-            //_endSequenceReward = listInput[indexWinnerInput].END;
-            currentInput = lista_input[indexWinnerInput];
-            setInput(currentInput);
-
-
-            Console.WriteLine(currentInput); //vedere se contiene il valore giusto
-            Console.WriteLine("Imagination : Input vincente = " + indexWinnerInput);
-            if (Constants.ENABLE_OUTPUT)
-                System.Console.WriteLine("\n *** *** *** *** *** *** *** *** Testing *** *** *** *** *** *** *** ***");
-            if (Constants.ENABLE_OUTPUT)
-                System.Console.WriteLine("*** *** *** *** Simulazione {0} *** *** *** ***", 1);
-        }
-
 
         /// <summary>
         /// This function establish if there is a correct output neuron for the liquid and if not it creates new one
@@ -1927,7 +1747,6 @@ namespace SLN
                 target = dest.COLUMN;
                 initSamenessToFirst(target); //feedback
                 initLiquidToOutput(dest);
-                _context.addPath(_outExt.getNeuronMorris(target));
                 if (Constants.DEBUG==1)
                     Console.WriteLine("E' stata aggiunta una nuova classe. Target: " + target);
                 return target;
@@ -1939,14 +1758,6 @@ namespace SLN
             }
         }
 
-        /// <summary>
-        /// This function establish if there is a correct output neuron for the liquid and if not it creates new one
-        /// </summary>
-        /// <returns></returns>
-        public int[] getValid()
-        {
-            return _context.valid;
-        }
 
     }
 }
