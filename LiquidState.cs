@@ -144,9 +144,8 @@ namespace SLN
         /// <param name="step">The current step of simulation</param>
         /// <param name="log">The logger object</param>
         /// <param name="sim_number">The number of the simulation</param>
-        internal void simulate(int step, StateLogger log, int sim_number)
+        internal void simulate(int step, StateLogger log)
         {
-            //simulateFirst1(step, log);
             simulateLiquid(step, log);
            
         }
@@ -220,40 +219,7 @@ namespace SLN
             output1.resetState();
         }
 
-        ///// <summary>
-        ///// Simulates the first layer (to SOSL #1)
-        ///// </summary>
-        ///// <param name="step">The current step of simulation</param>
-        ///// <param name="log">The logger object</param>
-        //private void simulateFirst1(int step, StateLogger log)
-        //{
-        //    Random rnd = new Random();
-
-        //    //If the neuron in the first layer is triggered, its input 
-        //    //current is a continuous external current, so it has 
-        //    //to be set to its value before each step of simulation, 
-        //    //because it was set to 0 in the previous step.
-        //    double iIn1 = Constants.INPUT_CURRENT * (1 + 0.1 * rnd.NextDouble());
-        //    double iFb1 = 0 * Constants.FEEDBACK_CURRENT * (1 + 0.2 * rnd.NextDouble());
-
-        //    for (int i = 0; i < Constants.FIRST_LAYER_DIMENSION_I; i++)
-        //        for (int j = 0; j < Constants.FIRST_LAYER_DIMENSION_J; j++)
-        //        {
-        //            if (_inputs1[i, j])
-        //            {
-        //                _firstLayer1[i, j].I = iIn1;
-        //            }
-        //        }
-
-        //    for (int i = 0; i < Constants.FIRST_LAYER_DIMENSION_I; i++)
-        //        for (int j = 0; j < Constants.FIRST_LAYER_DIMENSION_J; j++)
-        //        {
-        //            Neuron n = _firstLayer1[i, j];
-        //            n.simulate(step);
-        //            if (log != null)
-        //                log.logNeuron(step, n);
-        //        }
-        //}
+       
 
 
     }

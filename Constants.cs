@@ -19,32 +19,15 @@
         /// <summary>
         /// Number of rows in the first layer
         /// </summary>
-        public const int FIRST_LAYER_DIMENSION_I = 4;
+        public const int FIRST_LAYER_DIMENSION_I = 20;
 
 		/// <summary>
 		/// Number of columns in the first layer
 		/// </summary>
-		public const int FIRST_LAYER_DIMENSION_J = 4;
+		public const int FIRST_LAYER_DIMENSION_J = 20;
 
-		/// <summary>
-		/// Number of rows in the second layer
-		/// </summary>
-		public const int SECOND_LAYER_DIMENSION_I = 9;
-
-		/// <summary>
-		/// Number of columns in the second layer
-		/// </summary>
-		public const int SECOND_LAYER_DIMENSION_J = 9;
-
-        /// <summary>
-        /// Number of rows in the third layer
-        /// </summary>
-        public const int THIRD_LAYER_DIMENSION_I = 12;
-
-        /// <summary>
-        /// Number of columns in the third layer
-        /// </summary>
-        public const int THIRD_LAYER_DIMENSION_J = 12;
+	
+    
 
         /// <summary>
         /// Number of rows in the Liquid state

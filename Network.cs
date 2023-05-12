@@ -17,13 +17,8 @@ namespace SLN
     [Serializable]
     public class Network
     {
-        private int _levelReward;
-        private int _motor;
-        private bool _expCheck;
-        private int[] feat;
         private List<NetworkInput> countInput;
         private int simulationNumber;
-        private int simNumberInternal;
         public int current_epoch;
         public int current_learning;
         public int primo_test = 0;
@@ -83,38 +78,6 @@ namespace SLN
 
         }
 
-        /// <summary>
-        /// Constructor (with configuration taken from file)
-        /// </summary>
-        /// <param name="configPath"></param>
-        private Network(string configPath)
-        {
-            pathPc = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-
-            this.init();
-            this.initSynapseLayers(configPath);
-            file = new StreamWriter(pathPc + @"\Dati\EI.txt");
-            input_connection = new StreamWriter(pathPc + @"\Dati\Input_connection.txt");
-
-
-        }
-
-        /// <summary>
-        /// Constructor (with configuration taken from files)
-        /// </summary>
-        /// <param name="configPath"></param>
-        /// <param name="configStdp"></param>
-        private Network(string configPath, string configStdp)
-        {
-            pathPc = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-
-            this.init();
-            this.initSynapseLayers(configPath, configStdp);
-            file = new StreamWriter(pathPc + @"\Dati\EI.txt");
-            input_connection = new StreamWriter(pathPc + @"\Dati\Input_connection.txt");
-
-
-        }
 
         /// <summary>
         /// Constructor
@@ -141,28 +104,10 @@ namespace SLN
             _liquidToOut = new LinkedList<LinkedList<Synapse>>();
             _samenessToFirst = new LinkedList<LinkedList<SynapseProportional>>();
 
-            feat = new int[5];              //le prime 4 locazioni contengono le feature dell'elemento vincitore mentre la quinta l'indice del neurone motore vincitore
 
 
             rand = new Random(10000);
-
-
-            _expCheck = false;
-            _motor = -1;
-            countInput = new List<NetworkInput>();
-
             simulationNumber = 0;
-            simNumberInternal = -1;
-            indexWinOut = -1;
-            MLtoInput = new int[Constants.CLASSES, 4];
-            for (int i = 0; i < Constants.CLASSES; i++)
-                for (int j = 0; j < 4; j++)
-                {
-                    MLtoInput[i, j] = -1;
-                }
-
-
-
         }
 
 
@@ -215,31 +160,6 @@ namespace SLN
             {
                 synSav.saveSynapseConfig(_firstToLiquid);
             }
-        }
-
-        /// <summary>
-        /// Initializes the Sameness to first layer synapses
-        /// </summary>
-        /// <param name="synSav">The configuration saver object</param>
-        private void initSamenessToFirst(int indexSameness)
-        {
-            LinkedList<SynapseProportional> _samenessToFirst1 = new LinkedList<SynapseProportional>();
-            SumNeuron start = _outExt.getNeuronPersistance(indexSameness);
-
-            foreach (Neuron n in winnerFirst)
-            {
-                if (n != null)
-                {
-                    SynapseProportional syn = new SynapseProportional(start,
-                        n,
-                        Constants.SAMENESS_TO_FIRST_W);
-                    _samenessToFirst1.AddLast(syn);
-                }
-
-            }
-
-            _samenessToFirst.AddLast(_samenessToFirst1);
-
         }
 
 
@@ -541,7 +461,7 @@ namespace SLN
                     double[] _target = new double[Constants.SIMULATION_STEPS_LIQUID];
 
                     for (int i = 0; i < Constants.SIMULATION_STEPS_LIQUID; i++)
-                        _target[i] = (double)Math.Sin(i * 2 * Math.PI * (Constants.start_freq + target*Constants.incr_freq) * 0.001 / Constants.INTEGRATION_STEP_MORRIS_LECAR) / 100;
+                        _target[i] = (double)Math.Sin(i * 2 * Math.PI * (Constants.start_freq + target * Constants.incr_freq) * 0.001 / Constants.INTEGRATION_STEP_MORRIS_LECAR) / 100;
 
                     double[] W;
 
@@ -715,101 +635,6 @@ namespace SLN
 
         }
 
-        /// <summary>
-        /// Initializes the Liquid-to-Output synapses
-        /// </summary>
-        private void initLiquidToOutput()
-        {
-            LinkedList<Synapse> _liquidToOut1 = new LinkedList<Synapse>();
-            //Random randOut = new Random(10000); //
-            Random rand1 = new Random(10000); //
-            for (int i1 = 0; i1 < Constants.LIQUID_DIMENSION_I; i1++)
-                for (int j1 = 0; j1 < Constants.LIQUID_DIMENSION_J; j1++)
-                {
-                    Neuron start = _liquid.getLiquidLayerNeuron(i1, j1);
-
-                    double w = ((((rand.Next(100))) / 100.0) - 0.5) * 0.0001;  //* 0.0001;
-                    //w = Math.Abs(w);
-
-                    double[] value = new double[4];
-                    value[0] = 5 / 2;
-                    value[1] = 10 / 2;
-                    value[2] = 30 / 2;
-                    value[3] = 50 / 2;
-                    double tau = 1;
-
-                    double wheel = (((rand1.Next(100))) / 100.0);
-                    if (wheel < 0.25)
-                        tau = value[0];
-                    if ((wheel >= 0.25) && (wheel < 0.5))
-                        tau = value[1];
-                    if ((wheel >= 0.5) && (wheel < 0.75))
-                        tau = value[2];
-                    if (wheel >= 0.75)
-                        tau = value[3];
-
-
-                    SumNeuron dest = _outExt.getOutNeuronFirst();
-
-                    Synapse syn = new SynapseSTDP(tau,
-                                start,
-                                dest,
-                                1, 1, w);
-
-
-                    _liquidToOut1.AddLast(syn);
-
-                }
-
-            _liquidToOut.AddLast(_liquidToOut1);
-        }
-
-        /// <summary>
-        /// Initializes the Liquid-to-Output synapses
-        /// </summary>
-        private void initLiquidToOutput(SumNeuron destNeuron)
-        {
-            LinkedList<Synapse> _liquidToOut1 = new LinkedList<Synapse>();
-            Random rand1 = new Random(10000); //
-            for (int i1 = 0; i1 < Constants.LIQUID_DIMENSION_I; i1++)
-                for (int j1 = 0; j1 < Constants.LIQUID_DIMENSION_J; j1++)
-                {
-                    Neuron start = _liquid.getLiquidLayerNeuron(i1, j1);
-
-                    double w = ((((rand.Next(100))) / 100.0) - 0.5) * 0.0001;
-                    //w = Math.Abs(w);
-
-                    double[] value = new double[4];
-                    value[0] = 5 / 2;
-                    value[1] = 10 / 2;
-                    value[2] = 30 / 2;
-                    value[3] = 50 / 2;
-                    double tau = 1;
-
-                    double wheel = (((rand1.Next(100))) / 100.0);
-                    if (wheel < 0.25)
-                        tau = value[0];
-                    if ((wheel >= 0.25) && (wheel < 0.5))
-                        tau = value[1];
-                    if ((wheel >= 0.5) && (wheel < 0.75))
-                        tau = value[2];
-                    if (wheel >= 0.75)
-                        tau = value[3];
-
-
-                    SumNeuron dest = destNeuron;
-
-                    Synapse syn = new SynapseSTDP(tau,
-                                start,
-                                dest,
-                                1, 1, w);
-
-                    _liquidToOut1.AddLast(syn);
-
-                }
-
-            _liquidToOut.AddLast(_liquidToOut1);
-        }
 
         /// <summary>
         /// Initializes the synapses between layers, saving the configuration
@@ -821,36 +646,8 @@ namespace SLN
             initFirstToFirst1();
             initFirstToLiquid(synSav);
             initLiquidToLiquid();
-            initLiquidToOutput();
         }
 
-        /// <summary>
-        /// Initializes the synapses between layers, loading the configuration
-        /// of first-to-second synapses from file
-        /// <param name="configPath">The path of the configuration file</param>
-        /// </summary>
-        private void initSynapseLayers(string configPath)
-        {
-            initFirstToFirst1();
-            initFirstToLiquid(configPath);
-            initLiquidToLiquid();
-            initLiquidToOutput();
-
-        }
-
-        /// <summary>
-        /// Initializes the synapses between layers, loading the configuration
-        /// of first-to-second synapses from file and for the stdp synapses
-        /// <param name="configPath">The path of the configuration file</param>
-        /// <param name="configStdp">The path of the configuration file for the Stdp</param>
-        /// </summary>
-        private void initSynapseLayers(string configPath, string configStdp)
-        {
-            initFirstToFirst1();
-            initFirstToLiquid(configPath);
-            initLiquidToLiquid();
-            initLiquidToOutput();
-        }
 
         /// <summary>
         /// Sets the inputs of the network all features, plus the reward condition.
@@ -860,11 +657,9 @@ namespace SLN
         public void setInput(NetworkInput input)
         {
             countInput.Add(input);
-            
+
             currentInput = input;
             _layers.setInput(input);
-            //_liquid.setInput(input);
-            _motor = input.MOTOR;
         }
 
 
@@ -876,7 +671,6 @@ namespace SLN
         public void resetInputs()
         {
             _layers.resetInputs();
-            //_liquid.resetInputs();
         }
 
 
@@ -889,761 +683,51 @@ namespace SLN
         /// <param name="simNumber">Number of the simulation</param>
         /// <param name="learning">If <i>true</i> sets the learning on</param>
         //ritorna un intero, non un double
-        private double simulateLiquid(StateLogger log, StateLogger logSTDP, int simNumber, int simNumberInternal, bool learning, int signedTarget, bool test)
+        public double simulateLiquid(StateLogger log, StateLogger logSTDP)
         {
-            //inizialmente simNumberInternal = -1, Option = 0, signedtarget=0
-            String targetS;
-
-            if (simNumberInternal == -1)
-                targetS = "target" + simNumber + ".txt";
-            else
-                targetS = "target" + simNumber + "-" + simNumberInternal + ".txt";
-            StreamWriter fileTarget = new StreamWriter(pathPc + @"\Dati\" + targetS);
-            double target = 0;
-            double error = 0;
-            double errorMean = 0;
-            bool integration = false;
-
-            //signedTarget = 1;
-
             //resettiamo i log
             if (log != null)
                 log.newIteration();
-
             if (logSTDP != null)
                 logSTDP.newIteration();
 
 
-            //Caso di Pseudo-inversa Classica
-            if (_liquid.Option == 3)
+            for (int step = 0; step < 100; step++)
             {
-                setWLiquidToOutput("W.txt", signedTarget);
-                _liquid.Option = -1;
-            }
-
-            //Caso di Pseudo-Inversa con rumore
-            if (_liquid.Option == 5 && simNumberInternal > 1)
-            {
-                setWLiquidToOutput("W.txt", signedTarget);
-                //_liquid.Option = -1;
-            }
-
-            if (simNumberInternal == -1 || (_liquid.Option == 5 && simNumberInternal <= 2))      //io devo entrare sempre in questa if se sto eseguendo le simulazioni con input rumoroso per la pseudoinversa 
-            {
-                for (int step = 0; step < Constants.SIMULATION_STEPS_FEEDFORWARD; step++)
-                {
-                    if (log != null && (step % Constants.LOGGING_RATE) == 0)
-                    {
-                        log.printLog();
-                        log.newIteration();
-                    }
-                    if (logSTDP != null && (step % Constants.LOGGING_RATE) == 0)
-                    {
-                        logSTDP.printLog();
-                        logSTDP.newIteration();
-                    }
-
-                    foreach (Synapse s in _firstToFirst1)
-                    {
-                        s.simulate(step);
-                        if (log != null)
-                            log.logSynapse(s, step);
-                    }
-
-                    foreach (Synapse s in _firstToFirstSTDP)
-                    {
-                        s.simulate(step);
-                        if (log != null)
-                            logSTDP.logSynapse(s, step);
-                    }
-
-                    _layers.simulateFirst1(step, log);
-
-                    //non ci sono connessione sameness to first inizialmente
-                    foreach (LinkedList<SynapseProportional> s1 in _samenessToFirst)
-                        foreach (SynapseProportional s in s1)
-                        {
-                            s.simulate(step);
-                        }
-
-                }
-
-                if (log != null)
+                if (log != null && (step % Constants.LOGGING_RATE) == 0)
                 {
                     log.printLog();
                     log.newIteration();
                 }
-                if (logSTDP != null)
+                if (logSTDP != null && (step % Constants.LOGGING_RATE) == 0)
                 {
                     logSTDP.printLog();
                     logSTDP.newIteration();
                 }
 
-
-
-                //lista contenente un neurone vincitore per ogni feature. Ci possono essere
-                //valori non inizializzati.
-                winnerFirst = _layers.getWinnerFirstActive(Constants.SIMULATION_STEPS_FEEDFORWARD);
-
-                _liquid.resetActive();
-                StreamWriter input_active = new StreamWriter(pathPc + @"\Dati\Input_active_" + simNumber + ".txt");
-
-
-
-                if (winnerFirst != null) //se c'è almeno un neurone vincitore
-                {
-                    //in base all'attività dei neuroni si stabilisce se questa sia dovuta
-                    //all'input corrente oppure all'input precedente. Sulla base di questo
-                    //nel primo caso persistance sarà false, e nel secondo sarà true perché
-                    //l'input è permasto.
-                    bool persistance = false;
-
-                    foreach (Neuron n in winnerFirst)
-                        if (n != null)
-                            //ricordiamo che la riga è la Feature, 
-                            //la colonna è il valore che assume
-                            switch (n.ROW)
-                            {
-                                case 0:
-                                    if (n.COLUMN == currentInput.COLOR || currentInput.COLOR == -1)
-                                        persistance = false;
-                                    else persistance = true;
-                                    break;
-                                case 1:
-                                    if (n.COLUMN == currentInput.SIZE || currentInput.SIZE == -1)
-                                        persistance = false;
-                                    else persistance = true;
-                                    break;
-                                case 2:
-                                    if (n.COLUMN == currentInput.HDISTR || currentInput.HDISTR == -1)
-                                        persistance = false;
-                                    else persistance = true;
-                                    break;
-                                case 3:
-                                    if (n.COLUMN == currentInput.VDISTR || currentInput.VDISTR == -1)
-                                        persistance = false;
-                                    else persistance = true;
-                                    break;
-                            }
-                    //in teoria la parentesi mancante del foreach sopra dovrebbe finire qui
-                    //però se la cosa è veramente così allora l'ultimo neurone analizzato avrebbe
-                    //l'ultima parola su che valore debba avere persistance, il che non ha senso.
-
-                    //Forse l'effetto voluto era che il valore di persistance sia relativo alle singole feature.
-                    //Quindi o si dovrebbbe conservare un vettore di 4 booleani, oppure si dovrebbe cambiare 
-                    //leggermente il control-flow della procedura.
-
-                    //Però mettiamo il caso che l'effetto voluto sia quello che se presento un oggetto
-                    //una seconda volta (permanenza) allora voglio appunto che la permanenza scatti.
-                    //Ossia la permanenza dovrebbe avvenire su TUTTE le feature, e quindi si dovrebbe
-                    //memorizzare true solo se tutte le feature non nulle abbiano registrato una permanenza.
-                    foreach (Synapse s in _firstToLiquid)
-                    {
-                        foreach (Neuron n1 in winnerFirst)
-                            //qui si va a selezionare la sinapsi che parte dal neurone vincitore n1
-                            if (n1 != null && n1.ROW == s.Start.ROW && n1.COLUMN == s.Start.COLUMN && s.Start.NSpikes >= 2)
-                            {
-                                Class1Neuron n = (Class1Neuron)s.Dest;
-
-                                //Prima versione in cui la corrente della Liquid si setta al valore diverso dal Default
-                                //if (n1.ROW == 0 && n1.COLUMN == currentInput.COLOR)
-                                //    if (n.Active == false || currentInput.COLORVALUE < n.INPUTCURRENT || (currentInput.COLORVALUE != Constants.DEFAULT_CURRENT_LIQUID && currentInput.COLORVALUE > n.INPUTCURRENT))   //così do al neurone della liquid la corrente non di default anche se ha più inputs
-                                //        n.INPUTCURRENT = currentInput.COLORVALUE;
-                                //if (n1.ROW == 1 && n1.COLUMN == currentInput.SIZE)
-                                //    if (n.Active == false || currentInput.SIZEVALUE < n.INPUTCURRENT || (currentInput.SIZEVALUE != Constants.DEFAULT_CURRENT_LIQUID && currentInput.SIZEVALUE > n.INPUTCURRENT))
-                                //        n.INPUTCURRENT = currentInput.SIZEVALUE;
-                                //if (n1.ROW == 2 && n1.COLUMN == currentInput.HDISTR)
-                                //    if (n.Active == false || currentInput.HDISTRVALUE < n.INPUTCURRENT || (currentInput.HDISTRVALUE != Constants.DEFAULT_CURRENT_LIQUID && currentInput.HDISTRVALUE > n.INPUTCURRENT))
-                                //        n.INPUTCURRENT = currentInput.HDISTRVALUE;
-                                //if (n1.ROW == 3 && n1.COLUMN == currentInput.VDISTR)
-                                //    if (n.Active == false || currentInput.VDISTRVALUE < n.INPUTCURRENT || (currentInput.VDISTRVALUE != Constants.DEFAULT_CURRENT_LIQUID && currentInput.VDISTRVALUE > n.INPUTCURRENT))
-                                //        n.INPUTCURRENT = currentInput.VDISTRVALUE;
-
-                                if (!persistance)
-                                {
-                                    //Seconda versione in cui arriva la corrente nei neuroni della Liquid come somma degli ingressi dagli AL
-
-                                    //la terza condizione di questi if sembra superflua, perché nessuna colonna può essere -1.
-                                    if (n1.ROW == 0 && n1.COLUMN == currentInput.COLOR && currentInput.COLOR != -1)
-                                        n.INPUTCURRENT += currentInput.COLORVALUE;
-                                    else if (n1.ROW == 0 && currentInput.COLOR == -1)
-                                        n.INPUTCURRENT += Constants.DEFAULT_CURRENT_LIQUID;
-
-                                    if (n1.ROW == 1 && n1.COLUMN == currentInput.SIZE && currentInput.SIZE != -1)
-                                        n.INPUTCURRENT += currentInput.SIZEVALUE;
-                                    else if (n1.ROW == 1 && currentInput.SIZE == -1)
-                                        n.INPUTCURRENT += Constants.DEFAULT_CURRENT_LIQUID;
-
-                                    if (n1.ROW == 2 && n1.COLUMN == currentInput.HDISTR && currentInput.HDISTR != -1)
-                                        n.INPUTCURRENT += currentInput.HDISTRVALUE;
-                                    else if (n1.ROW == 2 && currentInput.HDISTR == -1)
-                                        n.INPUTCURRENT += Constants.DEFAULT_CURRENT_LIQUID;
-
-                                    if (n1.ROW == 3 && n1.COLUMN == currentInput.VDISTR && currentInput.VDISTR != -1)
-                                        n.INPUTCURRENT += currentInput.VDISTRVALUE;
-                                    else if (n1.ROW == 3 && currentInput.VDISTR == -1)
-                                        n.INPUTCURRENT += Constants.DEFAULT_CURRENT_LIQUID;
-                                }
-                                else
-                                {
-
-                                    if (n1.ROW == 0 && n1.COLUMN == currentInputOld.COLOR)
-                                        n.INPUTCURRENT += currentInputOld.COLORVALUE;
-                                    if (n1.ROW == 1 && n1.COLUMN == currentInputOld.SIZE)
-                                        n.INPUTCURRENT += currentInputOld.SIZEVALUE;
-                                    if (n1.ROW == 2 && n1.COLUMN == currentInputOld.HDISTR)
-                                        n.INPUTCURRENT += currentInputOld.HDISTRVALUE;
-                                    if (n1.ROW == 3 && n1.COLUMN == currentInputOld.VDISTR)
-                                        n.INPUTCURRENT += currentInputOld.VDISTRVALUE;
-
-                                }
-
-                                n.Active = true;
-
-                                input_active.WriteLine((n.ROW + 1) + " " + (n.COLUMN + 1) + " " + (n.INPUTCURRENT));
-                                input_active.Flush();
-
-                            }
-                    }
-
-                }
-
-                input_active.Close();
-                currentInputOld = currentInput;
-
-                _layers.resetNeuronsState();
-
-                for (int step = Constants.SIMULATION_STEPS_FEEDFORWARD; step < Constants.SIMULATION_STEPS_LIQUID + Constants.SIMULATION_STEPS_FEEDFORWARD; step++)
-                {
-                    if (log != null && (step % Constants.LOGGING_RATE) == 0)
-                    {
-                        log.printLog();
-                        log.newIteration();
-                    }
-                    if (logSTDP != null && (step % Constants.LOGGING_RATE) == 0)
-                    {
-                        logSTDP.printLog();
-                        logSTDP.newIteration();
-                    }
-                    //with target spiking
-                    //_ntarget.I = (signedTarget + 1) * 10;
-                    //_ntarget.simulate(step);
-
-                    //integration=true se si sono attivati gli stessi neuroni nel layer di input
-                    if (step == 2 * Constants.SIMULATION_STEPS_FEEDFORWARD)
-                    {
-                        winnerFirstA = _layers.getWinnerFirstActive(2 * Constants.SIMULATION_STEPS_FEEDFORWARD);
-                        for (int i = 0; i < 4; i++)
-                            if (winnerFirstA != null && winnerFirstA[i] != null && winnerFirst[i].COLUMN == winnerFirstA[i].COLUMN)
-                                integration = true;
-                            else
-                            {
-                                integration = false;
-                                break;
-                            }
-
-                    }
-
-                    target = (double)Math.Sin(((step - Constants.SIMULATION_STEPS_FEEDFORWARD) * 2 * Math.PI * ((Constants.start_freq + target * Constants.incr_freq) * 0.001)) / Constants.INTEGRATION_STEP_MORRIS_LECAR) / 100;
-                    ////Da mettere se vogliamo squadrare la sinusoide
-                    //if (target > 0)
-                    //    target = value;
-                    //else
-                    //    target = -value;
-
-                    foreach (Synapse s in _firstToFirst1)
-                    {
-                        s.simulate(step);
-                        if (log != null)
-                            log.logSynapse(s, step);
-                    }
-
-                    foreach (Synapse s in _firstToFirstSTDP)
-                    {
-                        s.simulate(step);
-                        //if (log != null)
-                        //    logSTDP.logSynapse(s, step);
-                    }
-
-                    foreach (Synapse s in _liquidToLiquid)
-                    {
-                        s.simulate(step);
-                        if (log != null)
-                            log.logSynapse(s, step);
-                    }
-
-                    foreach (LinkedList<Synapse> s1 in _liquidToOut)
-                        foreach (SynapseSTDP s in s1)
-                        {
-                            //s rappresenta una sinapsi culminante in un neurone somma
-                            s.simulate(step);
-
-                            if (s.Dest.COLUMN == signedTarget)
-                                //nel caso della pseudo-inversa il calcolo viene poi effettuato su Matlab
-                                if (learning && (_liquid.Option != 3) && (_liquid.Option != 5))
-                                    error = s.learnLiquid(step, Constants.LIQUID_TO_OUT_NI, Constants.LIQUID_TO_OUT_EPS, _liquid.Option, true, target);
-                            if (logSTDP != null)
-                                logSTDP.logSynapse(s, step);
-                        }
-                    //error è l'ultimo errore calcolato, era voluto tralasciare quelli precedenti?
-                    errorMean += Math.Abs(error); //non è una media
-                    _layers.simulateFirst1(step, log);
-                    _liquid.simulate(step, log, simNumber);
-                    _outExt.simulate(step, log, simNumberInternal, integration);
-
-
-
-                    String dot = target.ToString(CultureInfo.CreateSpecificCulture("en-GB"));
-                    String dotError = error.ToString(CultureInfo.CreateSpecificCulture("en-GB"));
-                    fileTarget.Write(dot + "\t" + dotError + "\r\n");
-                    fileTarget.Flush();
-
-                }
-
-                if (log != null)
-                {
-                    log.printLog();
-                    log.newIteration();
-                }
-                if (logSTDP != null)
-                {
-                    logSTDP.printLog();
-                    logSTDP.newIteration();
-                }
-                //aggiornamento a epoche
-                if (!test)
-                {
-                    foreach (SynapseSTDP s in _firstToFirstSTDP)
-                    {
-                        s.learn(0, 0);
-                        if (log != null)
-                            logSTDP.logSynapse(s, Constants.SIMULATION_STEPS_LIQUID + Constants.SIMULATION_STEPS_FEEDFORWARD + 1);
-
-                    }
-
-
-
-
-                    if (_liquid.Option == 1 || _liquid.Option == 4)
-                    {
-                        foreach (LinkedList<Synapse> s1 in _liquidToOut)
-                            foreach (SynapseSTDP s in s1)
-                            {
-                                if (s.Dest.COLUMN == signedTarget)
-                                    s.UpdateSyn();
-                                if (logSTDP != null)
-                                    logSTDP.logSynapse(s, Constants.SIMULATION_STEPS_LIQUID);
-                            }
-
-                    }
-                }
-
-                fileTarget.Close();
-                indexWinOut = _outExt.getWinnerNeuron();
+                _liquid.simulate(step, log);
             }
-            else
-            {
-
-                for (int step = Constants.SIMULATION_STEPS_FEEDFORWARD; step < Constants.SIMULATION_STEPS_LIQUID + Constants.SIMULATION_STEPS_FEEDFORWARD; step++)
-                {
-                    if (log != null && (step % Constants.LOGGING_RATE) == 0)
-                    {
-                        log.printLog();
-                        log.newIteration();
-                    }
-                    if (logSTDP != null && (step % Constants.LOGGING_RATE) == 0)
-                    {
-                        logSTDP.printLog();
-                        logSTDP.newIteration();
-                    }
-                    //with target spiking
-                    //_ntarget.I = (signedTarget + 1) * 10;
-                    //_ntarget.simulate(step);
-
-                    target = (double)Math.Sin(((step - Constants.SIMULATION_STEPS_FEEDFORWARD) * 2 * Math.PI * ((Constants.start_freq + target * Constants.incr_freq) * 0.001)) / Constants.INTEGRATION_STEP_MORRIS_LECAR) / 100;
-
-                    //if (target > 0)
-                    //    target = value;
-                    //else
-                    //    target = -value;
-
-
-                    foreach (LinkedList<Synapse> s1 in _liquidToOut)
-                        foreach (SynapseSTDP s in s1)
-                        {
-                            s.simulate(step);
-
-                            if (s.Dest.COLUMN == signedTarget)
-                                //nel caso della pseudo-inversa il calcolo viene poi effettuato su Matlab
-                                if (learning && (_liquid.Option != -1) && (_liquid.Option != 3) && (_liquid.Option != 5))
-                                    error = s.learnLiquid(step, Constants.LIQUID_TO_OUT_NI, Constants.LIQUID_TO_OUT_EPS, _liquid.Option, true, target);
-                            if (logSTDP != null)
-                                logSTDP.logSynapse(s, step);
-                        }
-
-                    errorMean += Math.Abs(error);
-                    _outExt.simulate(step, log, simNumberInternal, integration);
-
-
-
-                    String dot = target.ToString(CultureInfo.CreateSpecificCulture("en-GB"));
-                    String dotError = error.ToString(CultureInfo.CreateSpecificCulture("en-GB"));
-                    fileTarget.Write(dot + "\t" + dotError + "\r\n");
-                    fileTarget.Flush();
-
-
-
-                }
-
-                if (log != null)
-                {
-                    log.printLog();
-                    log.newIteration();
-                }
-                if (logSTDP != null)
-                {
-                    logSTDP.printLog();
-                    logSTDP.newIteration();
-                }
-
-                //aggiornamento a epoche
-                if (!test)
-                {
-
-                    if (_liquid.Option == 1 || _liquid.Option == 4)
-                    {
-                        foreach (LinkedList<Synapse> s1 in _liquidToOut)
-                            foreach (SynapseSTDP s in s1)
-                            {
-                                if (s.Dest.COLUMN == signedTarget)
-                                    s.UpdateSyn();
-                                if (logSTDP != null)
-                                    logSTDP.logSynapse(s, Constants.SIMULATION_STEPS_LIQUID);
-                            }
-
-                    }
-                }
-
-                fileTarget.Close();
-                indexWinOut = _outExt.getWinnerNeuron();
-
-
-
-            }
-            if (Constants.MORRIS_FREQUENCIES == 1)
-            {
-                Console.WriteLine("\n----------------------------");
-                Console.WriteLine("Conteggio Spikes Neuroni di Morris Lecar:");
-                for (int i = 0; i < Constants.CLASSES; i++)
-                    if (_outExt.getNeuronMorris(i) != null)
-                        Console.WriteLine("Neurone " + i + ": " + _outExt.getNeuronMorris(i).NSpikes);
-                Console.WriteLine("----------------------------\n");
-
-            }
-
-            //ricordo che indexWinOut è l'indice del neurone di Morris Lecar Vincente
-            if (indexWinOut != -1)
-            {
-
-                //test
-                if (test || simulateLiquidTest(indexWinOut, simNumber, simNumberInternal))
-                {
-
-                    if (MLtoInput[indexWinOut, 0] == -1)
-                    {
-                        for (int i = 0; i < 4; i++)
-                            if (winnerFirst[i] != null)
-                                MLtoInput[indexWinOut, i] = winnerFirst[i].COLUMN;
-                    }
-
-                    for (int i = 0; i < 4; i++)
-                        feat[i] = MLtoInput[indexWinOut, i];
-
-                    //reset of all neuron 
-                    _liquid.resetState();
-                    _layers.resetNeuronsState();
-                    
-                }
-                else
-                {
-                    indexWinOut = -1;
-                }
-            }
-
-      
-            _outExt.resetState();
-            //_ntarget.resetState();
-
-            //Se sono nelle simulazioni del Test devo resettare in ogni caso perchè non ho la possibilità di fare simulazioni interne
-            if (test || _liquid.Option == 5)
-            {
-                //reset of all neuron 
-                _liquid.resetState();
-
-                _layers.resetNeuronsState();
-            }
-
 
             if (log != null)
+            {
                 log.printLog();
-            if (logSTDP != null)
-                logSTDP.printLog();
-
-            if (log != null)
-            {
-                log.closeLog();
                 log.newIteration();
+                log.closeLog();
             }
             if (logSTDP != null)
             {
-                logSTDP.closeLog();
+                logSTDP.printLog();
                 logSTDP.newIteration();
-            }
-            countInput.Clear();
-
-
-            //return (errorMean / Constants.SIMULATION_STEPS_LIQUID);
-            return indexWinOut;
-
-        }
-
-
-        /// <summary>
-		/// Simulates the liquid in a test phase 
-		/// </summary>
-        private bool simulateLiquidTest(int signedTarget, int simNumber, int simNumberInternal)
-        {
-            double[] target = new double[Constants.SIMULATION_STEPS_LIQUID];
-            double[] ZW = new double[Constants.SIMULATION_STEPS_LIQUID];
-            double errorMeanTest = 0;
-            String targetS;
-            int countSpike = 0;
-
-            if (simNumberInternal == -1)
-                targetS = "Z_pesi_fissi" + simNumber + ".txt";
-            else
-                targetS = "Z_pesi_fissi" + simNumber + "-" + simNumberInternal + ".txt";
-
-            StreamWriter fileTarget = new StreamWriter(pathPc + @"\Dati\" + targetS);
-
-            _outExt.resetState();
-
-            for (int step = Constants.SIMULATION_STEPS_FEEDFORWARD; step < Constants.SIMULATION_STEPS_LIQUID + Constants.SIMULATION_STEPS_FEEDFORWARD; step++)
-            {
-                target[step - Constants.SIMULATION_STEPS_FEEDFORWARD] = (double)Math.Sin(((step - Constants.SIMULATION_STEPS_FEEDFORWARD) * 2 * Math.PI * ((signedTarget + 1) * 5 * 0.001)) / Constants.INTEGRATION_STEP_MORRIS_LECAR) / 100;
-
-                ////Se usiamo il target squadrato
-                //if (target[step - Constants.SIMULATION_STEPS_FEEDFORWARD] > 0)
-                //    target[step - Constants.SIMULATION_STEPS_FEEDFORWARD] = value;
-                //else
-                //    target[step - Constants.SIMULATION_STEPS_FEEDFORWARD] = -value;
-
-                foreach (LinkedList<Synapse> s1 in _liquidToOut)
-                    foreach (SynapseSTDP s in s1)
-                    {
-                        if (s.Dest.COLUMN == signedTarget)
-                        {
-                            s.simulate(step);
-                            ZW[step - Constants.SIMULATION_STEPS_FEEDFORWARD] += s.IPrev;
-                        }
-                    }
-
-
-                ////Se usiamo il sommatore squadrato:
-                //if (ZW[step - Constants.SIMULATION_STEPS_FEEDFORWARD] > 0)
-                //    ZW[step - Constants.SIMULATION_STEPS_FEEDFORWARD] = value;
-                //else
-                //    ZW[step - Constants.SIMULATION_STEPS_FEEDFORWARD] = -value;
-
-
-                errorMeanTest += target[step - Constants.SIMULATION_STEPS_FEEDFORWARD] - ZW[step - Constants.SIMULATION_STEPS_FEEDFORWARD];
-
-                String dot = ZW[step - Constants.SIMULATION_STEPS_FEEDFORWARD].ToString(CultureInfo.CreateSpecificCulture("en-GB"));
-
-
-                countSpike = _outExt.simulateMorrisLecar(step, signedTarget, ZW[step - Constants.SIMULATION_STEPS_FEEDFORWARD]);
-
-                fileTarget.Write(dot + "\t" + countSpike + "\r\n");
-                fileTarget.Flush();
-
-
+                logSTDP.closeLog();
             }
 
 
-            fileTarget.Close();
-            double threshold = _outExt.getMorrisThreshold(signedTarget);
 
-            //if (countSpike > (Constants.MORRIS_WINNER_SPIKE))     //vecchia versione con soglia costante per tutti i morris
-
-            if (countSpike > threshold)                             //nuova versione con la soglia che varia in base alla frequenza del morris
-                return true;
-            else
-                return false;
-
-            //if ((errorMeanTest / Constants.SIMULATION_STEPS_LIQUID) > Constants.LIQUID_TO_OUT_THRESHOLD)
-            //    return false;
-            //else return true;
-
-        }
+            _liquid.resetState();
+            //_layers.resetNeuronsState();
 
 
-
-
-        /// <summary>
-        /// Simulates the network for learning (logging the results)
-        /// </summary>
-        /// <param name="log">The logger object</param>
-        /// <param name="simNumber">Number of the simulation (0-based)</param>
-        public void learnLiquid(StateLogger log, int simNumber)
-        {
-            int target = 0;
-            if (simNumber != 0)
-                target = addNewNeuron(simNumber);
-
-            int simNumberInternal = 0;
-            double errorLearn = this.simulateLiquid(log, null, simNumber, simNumberInternal, true, target, false);
-            while (errorLearn == -1)
-            {
-                StateLogger sl = new StateLogger("Neurons" + (simNumber) + "-" + simNumberInternal + ".txt", "Synapse" + (simNumber) + "-" + simNumberInternal + ".txt", "NeuronMorrisLecar" + (simNumber) + "-" + simNumberInternal + ".txt", true, false, true);
-
-                errorLearn = this.simulateLiquid(sl, null, simNumber, simNumberInternal, true, target, false);
-                simNumberInternal++;
-            }
-        }
-
-        /// <summary>
-        /// Simulates the network for learning (logging the results for STDP synapse)
-        /// </summary>
-        /// <param name="log">The logger object</param>
-        /// <param name="simNumber">Number of the simulation (0-based) (epoch)</param>
-        /// <param name="input">vector for the input (without the simulation of the input layer) </param>
-        public void learnLiquid(StateLogger log, StateLogger logSTDP, int simNumber)
-        {
-            int target = 0;
-            bool nofeature = false;
-
-            simulationNumber = simNumber;
-
-            double errorLearn = this.simulateLiquid(log, logSTDP, simNumber, simNumberInternal, false, target, false);
-
-            target = addNewNeuron(simNumber);
-
-            simNumberInternal++;
-            while (errorLearn == -1 && simNumberInternal <= 2)
-            {
-                //Console.WriteLine("\nLearning non riuscito, in atto un nuovo tentantivo.\n");
-
-               
-                setOption(3);   
-                                
-
-
-                //PER PSEUDO-INVERSA CON RUMORE
-                if (_liquid.Option == 5 && simNumberInternal < 2)
-                {
-
-                    StateLogger sl = new StateLogger(pathPc + @"\Dati\Neurons" + (simNumber) + "-" + simNumberInternal + ".txt", pathPc + @"\Dati\Synapse" + (simNumber) + "-" + simNumberInternal + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + (simNumber) + "-" + simNumberInternal + ".txt", true, false, true);
-                    StateLogger slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + (simNumber) + "-" + simNumberInternal + ".txt", pathPc + @"\Dati\SynapseSTDP" + (simNumber) + "-" + simNumberInternal + ".txt", false, true);
-                    this.resetInputs();
-
-                    //Se abbiamo l'ultima feature mancante usiamo questa variazione per la pseudoInversa rumorosa -> caso if se no else
-                    if (currentInput.VDISTR == -1)
-                    {
-                        this.setInput(new NetworkInput(currentInput.COLOR, currentInput.SIZE, currentInput.HDISTR, 1, currentInput.REWARD, currentInput.END, currentInput.REWARDLEVEL, 0, 0, 0, -60, currentInput.MOTOR));  //setto lo stesso input di prima semplicemente modificando una feature,perturbandola con del rumore prima additivo e poi sottrattivo                            
-                        nofeature = true;
-                    }
-                    else
-                        this.setInput(new NetworkInput(currentInput.COLOR, currentInput.SIZE, currentInput.HDISTR, currentInput.VDISTR, currentInput.REWARD, currentInput.END, currentInput.REWARDLEVEL, 0, 0, 0, -40, currentInput.MOTOR));  //setto lo stesso input di prima semplicemente modificando una feature,perturbandola con del rumore prima additivo e poi sottrattivo
-
-                    this.simulateLiquid(sl, slStdp, simNumber, simNumberInternal, false, target, false);
-                    simNumberInternal++;
-                    StateLogger sl1 = new StateLogger(pathPc + @"\Dati\Neurons" + (simNumber) + "-" + simNumberInternal + ".txt", pathPc + @"\Dati\Synapse" + (simNumber) + "-" + simNumberInternal + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + (simNumber) + "-" + simNumberInternal + ".txt", true, false, true);
-                    StateLogger slStdp1 = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + (simNumber) + "-" + simNumberInternal + ".txt", pathPc + @"\Dati\SynapseSTDP" + (simNumber) + "-" + simNumberInternal + ".txt", false, true);
-                    this.resetInputs();
-
-                    //Se abbiamo l'ultima feature mancante usiamo questa variazione per la pseudoInversa rumorosa -> caso if se no else
-                    if (nofeature)
-                        this.setInput(new NetworkInput(currentInput.COLOR, currentInput.SIZE, currentInput.HDISTR, 1, currentInput.REWARD, currentInput.END, currentInput.REWARDLEVEL, 0, 0, 0, -80, currentInput.MOTOR));
-                    else
-                        this.setInput(new NetworkInput(currentInput.COLOR, currentInput.SIZE, currentInput.HDISTR, currentInput.VDISTR, currentInput.REWARD, currentInput.END, currentInput.REWARDLEVEL, 0, 0, 0, -20, currentInput.MOTOR));
-
-                    this.simulateLiquid(sl1, slStdp1, simNumber, simNumberInternal, false, target, false);
-                    simNumberInternal++;
-
-                    if (nofeature)
-                        this.setInput(new NetworkInput(currentInput.COLOR, currentInput.SIZE, currentInput.HDISTR, -1, currentInput.REWARD, currentInput.END, currentInput.REWARDLEVEL));
-                    else
-                        this.setInput(new NetworkInput(currentInput.COLOR, currentInput.SIZE, currentInput.HDISTR, currentInput.VDISTR, currentInput.REWARD, currentInput.END, currentInput.REWARDLEVEL));
-
-                    if (Constants.LIQUID_TO_OUT_PSEUDOINV_FILE)
-                    {
-                        Console.WriteLine("\n Aggiornare file W da Matlab con Simulation=" + simNumber + " target=" + target);
-                        Console.WriteLine("\n Scrivere su prompt Matlab: PseudoInvNoise(" + simNumber + "," + target + ") \n");
-                    }
-                    string op = System.Console.ReadLine();
-                }
-
-
-
-                StateLogger sl2 = new StateLogger(pathPc + @"\Dati\Neurons" + (simNumber) + "-" + simNumberInternal + ".txt", pathPc + @"\Dati\Synapse" + (simNumber) + "-" + simNumberInternal + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + (simNumber) + "-" + simNumberInternal + ".txt", true, false, true);
-                StateLogger slStdp2 = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + (simNumber) + "-" + simNumberInternal + ".txt", pathPc + @"\Dati\SynapseSTDP" + (simNumber) + "-" + simNumberInternal + ".txt", false, true);
-                errorLearn = this.simulateLiquid(sl2, slStdp2, simNumber, simNumberInternal, true, target, false);
-                simNumberInternal++;
-            }
-
-            simNumberInternal = -1;
-            Console.WriteLine("\t\t\t\t\t\t\t\tNeurone vincitore: " + indexWinOut);
-           // Console.WriteLine("\t\t\t\t\t\t\t\tNeurone Motore vincitore: " + feat[feat.Length - 1] + "\n\n");
-
-
-
-        }
-
-        /// <summary>
-        /// Simulates the network for learning
-        /// </summary>
-        /// <param name="simNumber">Number of the simulation (0-based)</param>
-        public void learnLiquid(int simNumber)
-        {
-            int target = 0;
-            if (simNumber != 0)
-                target = addNewNeuron(simNumber);
-
-
-            double errorLearn = this.simulateLiquid(null, null, simNumber, 0, true, target, false);
-            while (errorLearn == -1)
-            {
-                errorLearn = this.simulateLiquid(null, null, simNumber, 0, true, target, false);
-            }
-        }
-
-        /// <summary>
-        /// Simulates the network for testing (logging the results)
-        /// </summary>
-        /// <param name="log">The logger object</param>
-        /// <param name="simNumber">Number of the simulation (0-based)</param>
-        public void testLiquid(StateLogger log, int simNumber)
-        {
-            this.simulateLiquid(log, null, simNumber, 0, false, 0, true);
-        }
-
-
-        //prova
-        /// <summary>
-        /// Simulates the network for testing (logging the results for STDP synapses)
-        /// </summary>
-        /// <param name="log">The logger object</param>
-        /// <param name="simNumber">Number of the simulation (0-based)</param>
-        public void testLiquid(StateLogger log, StateLogger logSTDP, int simNumber)
-        {
-            // Console.WriteLine("\t\tsim: " + simulationNumber);   
-            simulationNumber = simNumber;
-
-   
-            this.simulateLiquid(log, logSTDP, simNumber, -1, false, 0, true);
-            Console.WriteLine("\t\t\t\t\t\t\t\tNeurone vincitore: " + indexWinOut);
-            //Console.WriteLine("\t\t\t\t\t\t\t\tNeurone Motore vincitore: " + feat[feat.Length - 1] + "\n\n");
-
+            return 1;
         }
 
 
@@ -1651,18 +735,6 @@ namespace SLN
 
 
 
-
-     
-
-        /// <summary>
-        /// Creates a new network, reading its status information from file
-        /// </summary>
-        /// <param name="configPath">The path of the configuration file</param>
-        /// <returns>A reference to the new <code>Network</code> object</returns>
-        public static Network generateNetwork(String configPath)
-        {
-            return new Network(configPath);
-        }
 
         /// <summary>
         /// Creates a new network without information
@@ -1671,91 +743,6 @@ namespace SLN
         public static Network generateNetwork()
         {
             return new Network();
-        }
-
-        /// <summary>
-        /// Creates a new network, reading its status information from files
-        /// </summary>
-        /// <param name="configPath">The path of the configuration file</param>
-        /// <param name="configStdp">The path of the configuration file for the STDP synapses</param>
-        /// <returns>A reference to the new <code>Network</code> object</returns>
-        public static Network generateNetwork(String configPath, String configStdp)
-        {
-            return new Network(configPath, configStdp);
-        }
-
-
-
-        /// <summary>
-        /// Return the value of _expCheck variable which contains the result of the comparison beetwen the expected input and the presented one
-        /// </summary>
-        public bool getExpCheck()
-        {
-            return _expCheck;
-        }
-
-        /// <summary>
-        /// Return the value of feat variable which contains the features of the winner input 
-        /// </summary>
-        public int[] getFeat()
-        {
-            return feat;
-        }
-
-        /// <summary>
-        /// Set the value of the option for the liquid state
-        /// </summary>
-        public void setOption(int op)
-        {
-            _liquid.Option = op;
-        }
-
-
-
-
-
-        /// <summary>
-        /// This function establish if there is a correct output neuron for the liquid and if not it creates new one
-        /// </summary>
-        /// <returns></returns>
-        public int addNewNeuron(int simNumber)
-        {
-            //in generale questa funzione serve per creare una nuova classe
-            //di output se necessario
-            int target = 0;
-            SumNeuron dest;
-
-            //dopo che una simulazione (1200 steps) si va a vedere quale dei neuroni di Morris-Lecar
-            //si è attivato. L'indice di questo neurone è contenuto in indexWinOut.
-            //in particolare se nessun neurone si è attivato indexWinOut è posto a -1.
-
-
-            //se siamo alla prima simulazione non può che esistere per ora
-            //una sola classe, con i neuroni (morris, sum, persist., samen.) già creati
-            if (simNumber == 0)
-            {
-                //connettiamo il neurone di sameness con tutti i neuroni vincitori del layer di input
-                initSamenessToFirst(0); //feedback
-                return 0;
-            }
-            else
-            //in questo caso c'è bisogno di creare una nuova classe
-            if (indexWinOut == -1)
-            {
-                //andiamo a creare i neuroni della nuova classe, inizializzando le connessioni
-                dest = _outExt.addNeuron();
-                target = dest.COLUMN;
-                initSamenessToFirst(target); //feedback
-                initLiquidToOutput(dest);
-                if (Constants.DEBUG==1)
-                    Console.WriteLine("E' stata aggiunta una nuova classe. Target: " + target);
-                return target;
-            }
-            else
-            {
-                //dovrebbe essere il caso nel quale non serve alcuna classe nuova
-                return indexWinOut;
-            }
         }
 
 
