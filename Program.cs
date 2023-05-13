@@ -48,12 +48,14 @@ namespace SLN
             String frame_path = "../../../PyScript/video_1/frames_DVS/";
             String frame_name = "_frame_DVS.txt";
             double[,] input_matrix;
-            Network net = Network.generateNetwork();
             double[,] liquid_state = new double[50, Constants.LIQUID_DIMENSION_I * Constants.LIQUID_DIMENSION_J];
             double[,] targets = new double[50, Constants.FIRST_LAYER_DIMENSION_I * Constants.FIRST_LAYER_DIMENSION_J];
             double sample_time = 10; //ms
             int sample_steps = (int)(sample_time / Constants.INTEGRATION_STEP);
 
+
+            //Network net = BinarySerialization.ReadFromBinaryFile<Network>("net.bin");
+           Network net = Network.generateNetwork();
             for (int i = 0; i < 51; i++)
             {
                 if (i == 0)
@@ -74,7 +76,7 @@ namespace SLN
             //WriteMatrixToFile(liquid_state, "../../../PyScript/video_1/LiquidStates/" + i + "_liquid.txt");
             //PrintMatrix(liquid_state);
 
-
+            BinarySerialization.WriteToBinaryFile("net.bin", net);  
 
 
 
@@ -188,231 +190,6 @@ namespace SLN
                 }
                 Console.WriteLine();
             }
-        }
-
-        public static void Run_cmd()
-        {
-            string fileName = @"C:\Users\Emanuele\Desktop\Detection_varie\Form_color_detection.py";
-
-            Process p = new Process();
-            p.StartInfo = new ProcessStartInfo(@"C:\Users\Emanuele\AppData\Local\Programs\Python\Python311\python.exe", fileName)
-            {
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-            p.Start();
-
-            string output = p.StandardOutput.ReadToEnd();
-            p.WaitForExit();
-
-
-            Console.WriteLine(output);
-
-            //Console.ReadLine();
-        }
-        public static void Run_cmd_2()
-        {
-            string fileName = @"C:\Users\Emanuele\Desktop\Detection_varie\Form_color_detection_Double.py";
-
-            Process p = new Process();
-            p.StartInfo = new ProcessStartInfo(@"C:\Users\Emanuele\AppData\Local\Programs\Python\Python311\python.exe", fileName)
-            {
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-            p.Start();
-
-            string output = p.StandardOutput.ReadToEnd();
-            p.WaitForExit();
-
-
-            Console.WriteLine(output);
-
-            //Console.ReadLine();
-        }
-
-        public static void Get_input(Network net)
-        {
-
-            int[] features = new int[4];
-            int i = 0;
-            //Thread.Sleep(1500);
-            Run_cmd();
-
-            String file = "C:\\Users\\Emanuele\\Desktop\\Detection_varie\\input.txt";
-            StreamReader dataStream = new StreamReader(file);
-            string datasample;
-            //while ((datasample = dataStream.ReadLine()) != null)
-            datasample = dataStream.ReadLine();
-            string[] numberArray = datasample.Split(new char[] { '(', ',', ' ', ')' }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (string numberString in numberArray)
-            {
-                int number;
-                if (int.TryParse(numberString, out number))
-                {
-                    features[i] = number;
-                }
-                i += 1;
-            }
-            dataStream.Close();
-
-
-            Console.WriteLine(String.Format("Input Letto: {0}, {1}, {2}, {3}", features[0], features[1], features[2], features[3]));
-            if (features[0] == 0 && features[1] == 0 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Yellow Square");
-            if (features[0] == 0 && features[1] == 1 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Yellow Rectangle");
-            if (features[0] == 0 && features[1] == 2 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Yellow Triangle");
-            if (features[0] == 0 && features[1] == 3 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Yellow Circle");
-
-            if (features[0] == 1 && features[1] == 0 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Red Square");
-            if (features[0] == 1 && features[1] == 1 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Red Rectangle");
-            if (features[0] == 1 && features[1] == 2 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Red Triangle");
-            if (features[0] == 1 && features[1] == 3 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Red Circle");
-
-            if (features[0] == 2 && features[1] == 0 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Blu Square");
-            if (features[0] == 2 && features[1] == 1 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Blu Rectangle");
-            if (features[0] == 2 && features[1] == 2 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("Blu Triangle");
-            if (features[0] == 2 && features[1] == 3 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Blu Circle");
-            Console.WriteLine("Scegliere: niente (-1), destra (0), sinistra (1)");
-            //int scelta = Convert.ToInt32(Console.ReadLine());
-            // Console.WriteLine("Scegliere: niente (-1), destra (0), sinistra (1)");
-            // int reward = Convert.ToInt32(Console.ReadLine());
-
-            net.setInput(new NetworkInput(features[0], features[1], features[2], features[3], false, false));
-            net.setInput(new NetworkInput(-1, -1, -1, -1, false, true, 1));
-            //NetworkInput inputNullRewardLevel1 = new NetworkInput(-1, -1, -1, -1, false, true, 1);ù
-            //NetworkInput inputANoRewardLeft = new NetworkInput(1, 1, 1, 1, 1, false);
-            //ret blu dx
-            //ret rosso sx
-            //tr blu sinistra
-            //red circle dx reward 3
-
-            //yellow circle dx
-            //yellow rectangle sx
-            //
-
-        }
-
-        public static void Get_input_2(Network net)
-        {
-
-            int[] features = new int[4];
-            int i = 0;
-            //Thread.Sleep(1500);
-            Run_cmd_2();
-
-            String file = "C:\\Users\\Emanuele\\Desktop\\Detection_varie\\input.txt";
-            StreamReader dataStream = new StreamReader(file);
-            string datasample;
-            //while ((datasample = dataStream.ReadLine()) != null)
-            datasample = dataStream.ReadLine();
-            string[] numberArray = datasample.Split(new char[] { '(', ',', ' ', ')' }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (string numberString in numberArray)
-            {
-                int number;
-                if (int.TryParse(numberString, out number))
-                {
-                    features[i] = number;
-                }
-                i += 1;
-            }
-
-
-            Console.WriteLine(String.Format("Input Letto: {0}, {1}, {2}, {3}", features[0], features[1], features[2], features[3]));
-            if (features[0] == 0 && features[1] == 0 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Yellow Square");
-            if (features[0] == 0 && features[1] == 1 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Yellow Rectangle");
-            if (features[0] == 0 && features[1] == 2 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Yellow Triangle");
-            if (features[0] == 0 && features[1] == 3 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Yellow Circle");
-
-            if (features[0] == 1 && features[1] == 0 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Red Square");
-            if (features[0] == 1 && features[1] == 1 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Red Rectangle");
-            if (features[0] == 1 && features[1] == 2 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Red Triangle");
-            if (features[0] == 1 && features[1] == 3 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Red Circle");
-
-            if (features[0] == 2 && features[1] == 0 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Blu Square");
-            if (features[0] == 2 && features[1] == 1 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Blu Rectangle");
-            if (features[0] == 2 && features[1] == 2 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("Blu Triangle");
-            if (features[0] == 2 && features[1] == 3 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Blu Circle");
-            //int scelta = Convert.ToInt32(Console.ReadLine());
-            // Console.WriteLine("Scegliere: niente (-1), destra (0), sinistra (1)");
-            // int reward = Convert.ToInt32(Console.ReadLine());
-
-            net.setInput(new NetworkInput(features[0], features[1], features[2], features[3], false, false));
-            /////////////////////////////////////////
-            datasample = dataStream.ReadLine();
-            numberArray = datasample.Split(new char[] { '(', ',', ' ', ')' }, StringSplitOptions.RemoveEmptyEntries);
-            i = 0;
-            foreach (string numberString in numberArray)
-            {
-                int number;
-                if (int.TryParse(numberString, out number))
-                {
-                    features[i] = number;
-                }
-                i += 1;
-            }
-            dataStream.Close();
-
-
-            Console.WriteLine(String.Format("Input Letto: {0}, {1}, {2}, {3}", features[0], features[1], features[2], features[3]));
-            if (features[0] == 0 && features[1] == 0 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Yellow Square");
-            if (features[0] == 0 && features[1] == 1 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Yellow Rectangle");
-            if (features[0] == 0 && features[1] == 2 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Yellow Triangle");
-            if (features[0] == 0 && features[1] == 3 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Yellow Circle");
-
-            if (features[0] == 1 && features[1] == 0 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Red Square");
-            if (features[0] == 1 && features[1] == 1 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Red Rectangle");
-            if (features[0] == 1 && features[1] == 2 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Red Triangle");
-            if (features[0] == 1 && features[1] == 3 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Red Circle");
-
-            if (features[0] == 2 && features[1] == 0 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Blu Square");
-            if (features[0] == 2 && features[1] == 1 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Blu Rectangle");
-            if (features[0] == 2 && features[1] == 2 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("Blu Triangle");
-            if (features[0] == 2 && features[1] == 3 && features[2] == -1 && features[3] == -1)
-                Console.WriteLine("             Blu Circle");
-
-
-            net.setInput(new NetworkInput(features[0], features[1], features[2], features[3], false, false));
-
-
         }
 
 
