@@ -13,18 +13,22 @@
         public const double KF = 0.35; 
         public const double KI = 70;
 
+        public const double EX_PROB = 0.8;
+        public const double LIQUID_CONNETTIVITY = 0.5;
+        public const double INPUT_TO_LIQUID_PROB = 0.5;
+        public const int Single_INPUT_TO_LIQUID_CONNECTIONS = 25;
 
-    
+
         #region Network geometry
         /// <summary>
         /// Number of rows in the first layer
         /// </summary>
-        public const int FIRST_LAYER_DIMENSION_I = 20;
+        public const int FIRST_LAYER_DIMENSION_I = 64;
 
 		/// <summary>
 		/// Number of columns in the first layer
 		/// </summary>
-		public const int FIRST_LAYER_DIMENSION_J = 20;
+		public const int FIRST_LAYER_DIMENSION_J = 64;
 
 	
     
@@ -32,12 +36,12 @@
         /// <summary>
         /// Number of rows in the Liquid state
         /// </summary>
-        public const int LIQUID_DIMENSION_I = 8;
+        public const int LIQUID_DIMENSION_I = 40;
 
         /// <summary>
         /// Number of columns in the Liquid
         /// </summary>
-        public const int LIQUID_DIMENSION_J = 8;
+        public const int LIQUID_DIMENSION_J = 40;
 
 		/// <summary>
 		/// Radius of the neighborhood for each neuron in the second layer
@@ -855,7 +859,7 @@
         /// <summary>
         /// Probability for the internal synapses in the Liquid layer
         /// </summary>
-        public const double LIQUID_E_I = 0.25;       //0.1
+        public const double LIQUID_E_I = 0.20;       //0.1
 
         /// <summary>
         /// Connection for the internal synapses in the Liquid layer

@@ -1,0 +1,6 @@
+Numero_Totale_Frame_input =  52.0
+FPS =  29.0
+Durata_Video [sec] =  2.0
+Dimensione_Frame (N x N); con N =  64.0
+Numero_Totale_Frame_DVS =  51.0
+Numero_Pixel_Intero_Video_DVS =  208896.0

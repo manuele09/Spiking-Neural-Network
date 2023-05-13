@@ -6,6 +6,7 @@ using CSML;
 //using Matrix;
 using Accord.Math;
 using System.Threading.Tasks;
+using static SLN.Program;
 
 //revert commit
 
@@ -30,12 +31,14 @@ namespace SLN
         private LinkedList<Synapse> _liquidToLiquid;
         private LinkedList<LinkedList<Synapse>> _liquidToOut;
         private LinkedList<LinkedList<SynapseProportional>> _samenessToFirst;
+        private LinkedList<Connection>[,] connectivityMatrix;
 
         // Layers
         private Layers _layers;
         private LiquidState _liquid;
         private OutputLayerExternal _outExt;
 
+        private double[,] W = new double[Constants.LIQUID_DIMENSION_I * Constants.LIQUID_DIMENSION_J, Constants.FIRST_LAYER_DIMENSION_I * Constants.FIRST_LAYER_DIMENSION_J];
 
 
         //winner first
@@ -62,6 +65,19 @@ namespace SLN
 
         //link input Morris-Lecar
         public int[,] MLtoInput;
+
+        internal void saveWeights(double[,] w)
+        {
+            W = (double[,])w.Clone();
+        }
+        internal Neuron getLiquidLayerNeuron(int i, int j)
+        {
+            return _liquid.getLiquidLayerNeuron(i, j);
+        }
+        internal double getLiquidLayerNeuronFreq(int i, int j, int window)
+        {
+            return _liquid.getLiquidLayerNeuronFrequency(i, j, window);
+        }
 
         /// <summary>
         /// Constructor (with configuration saved to file)
@@ -256,135 +272,85 @@ namespace SLN
         }
 
 
+
+
+        private readonly Random _random = new Random();
+
+        public double NextGaussian(double mu, double sigma)
+        {
+            // These are uniform(0,1) random doubles
+            double u1 = _random.NextDouble();
+            double u2 = _random.NextDouble();
+            // Using Box-Muller transform to get two standard normally distributed numbers
+            double randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) *
+                Math.Sin(2.0 * Math.PI * u2);
+
+            // Scaling and shifting standard normal random numbers to get desired distribution
+            double randNormal = mu + sigma * randStdNormal;
+
+            return randNormal;
+        }
+        public double NextGaussian(double mu, double sigma, double minValue, double maxValue)
+        {
+            double randNormal;
+            do
+            {
+                // These are uniform(0,1) random doubles
+                double u1 = _random.NextDouble();
+                double u2 = _random.NextDouble();
+
+                // Using Box-Muller transform to get two standard normally distributed numbers
+                double randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) *
+                    Math.Sin(2.0 * Math.PI * u2);
+
+                // Scaling and shifting standard normal random numbers to get desired distribution
+                randNormal = mu + sigma * randStdNormal;
+            }
+            while (randNormal < minValue || randNormal > maxValue);
+
+            return randNormal;
+        }
+
         /// <summary>
         /// Initializes the Liquid-To-Liquid-layer synapses
         /// </summary>
         private void initLiquidToLiquid()
         {
-            double[,] W;
-            W = new double[Constants.LIQUID_DIMENSION_I * Constants.LIQUID_DIMENSION_J, Constants.LIQUID_DIMENSION_I * Constants.LIQUID_DIMENSION_J];
-
-            // determinazione eccitatori-inibitori
-            bool[] ei = new bool[Constants.LIQUID_DIMENSION_I * Constants.LIQUID_DIMENSION_J];
-
-            for (int i = 0; i < Constants.LIQUID_DIMENSION_I * Constants.LIQUID_DIMENSION_J; i++)
-            {
-
-                double EI = (((rand.Next(100))) / 100.0); // eccitatorio/inibitorio
-                if (EI < Constants.LIQUID_E_I)  // caso inibitorio
-                {
-                    ei[i] = false;
-                    file.WriteLine(i + "\t" + 0);
-                }
-                else		 //  caso eccitatorio
-                {
-                    ei[i] = true;
-                    file.WriteLine(i + "\t" + 1);
-                }
-                file.Flush();
-            }
-
-            file.Close();
-
+            double w = 0;
+            Synapse syn;
+            double tau = 0;
+            double delay = 0;
 
             for (int i1 = 0; i1 < Constants.LIQUID_DIMENSION_I; i1++)
                 for (int j1 = 0; j1 < Constants.LIQUID_DIMENSION_J; j1++)
                 {
                     Neuron start = _liquid.getLiquidLayerNeuron(i1, j1);
+
                     for (int i2 = 0; i2 < Constants.LIQUID_DIMENSION_I; i2++)
                         for (int j2 = 0; j2 < Constants.LIQUID_DIMENSION_J; j2++)
                         {
+                            bool first_exc = _liquid.getLiquidLayerNeuron(i1, j1).is_exec;
+                            bool second_exc = _liquid.getLiquidLayerNeuron(i2, j2).is_exec;
 
                             Neuron dest = _liquid.getLiquidLayerNeuron(i2, j2);
 
-                            double deltaX = i1 - i2, deltaY = j1 - j2;
-                            if (Math.Abs(i1 - i2) > Constants.LIQUID_DIMENSION_I / 2)
-                                deltaX = Math.Abs(i1 - i2) - Constants.LIQUID_DIMENSION_I;
-                            if (Math.Abs(j1 - j2) > Constants.LIQUID_DIMENSION_J / 2)
-                                deltaY = Math.Abs(j1 - j2) - Constants.LIQUID_DIMENSION_J;
-
-                            double distance = Math.Sqrt(Math.Pow(deltaX, 2) + Math.Pow(deltaY, 2));
-                            double C = 0;
-                            double prob = 0;
-
-                            if ((ei[i1 * Constants.LIQUID_DIMENSION_I + j1]) && (ei[i2 * Constants.LIQUID_DIMENSION_I + j2])) // EE
-                                C = 0.3;
-                            if ((ei[i1 * Constants.LIQUID_DIMENSION_I + j1]) && (!(ei[i2 * Constants.LIQUID_DIMENSION_I + j2]))) // EI
-                                C = 0.2;
-                            if ((!(ei[i1 * Constants.LIQUID_DIMENSION_I + j1])) && (ei[i2 * Constants.LIQUID_DIMENSION_I + j2])) // IE
-                                C = 0.4;
-                            if (!((ei[i1 * Constants.LIQUID_DIMENSION_I + j1])) && (!(ei[i2 * Constants.LIQUID_DIMENSION_I + j2]))) // II
-                                C = 0.1;
-                            C = C * 2;
-
-                            switch (Constants.LIQUID_CONNECTION)
+                            if (rand.NextDouble() < Constants.LIQUID_CONNETTIVITY)
                             {
-                                case 1:
-                                    if (distance <= 1)
-                                        prob = 1 * C;
-                                    else
-                                        prob = 0;
-                                    break;
-                                case 2:
-                                    if (distance <= 1)
-                                        prob = 1 * C;
-                                    if ((distance > 1) && (distance <= 2))
-                                        prob = 0.5 * C;
-                                    if (distance > 2)
-                                        prob = 0;
-                                    break;
-                                case 3:
-                                    break;
-                                case 4:
-                                    break;
-                                case 5:
-                                    break;
+                                if (first_exc && second_exc)
+                                    w = NextGaussian(5, 0.7 * 5);
+                                if (first_exc && !second_exc)
+                                    w = NextGaussian(25, 0.7 * 25);
+                                if (!first_exc)
+                                    w = NextGaussian(-20, 0.7 * (-20));
+
+                                if (first_exc)
+                                    tau = 3; //ms
+                                else
+                                    tau = 2; //ms
+                                delay = NextGaussian(10, 20, 3, 200); //ms da trasformare in steps
+                                syn = new Synapse(start, dest, w, 0, tau, (int)(delay / Constants.INTEGRATION_STEP), 1);
+                                _liquidToLiquid.AddLast(syn);
                             }
-
-                            if (distance <= 1)
-                                prob = 1 * C;
-                            if ((distance > 1) && (distance <= 2))
-                                prob = 0.5 * C;
-                            if (distance > 2)
-                                prob = 0;
-
-                            double weightL = ((((rand.Next(100))) / 100.0) + 0) / 2;     //prima era +1
-
-                            double p = (((rand.Next() % 100)) / 100.0); // eccitatorio/inibitorio
-                            if (p < prob)
-                                if (ei[i1 * Constants.LIQUID_DIMENSION_I + j1])  // se il neurone di interesse è eccitatorio
-                                    W[i1 * Constants.LIQUID_DIMENSION_I + j1, i2 * Constants.LIQUID_DIMENSION_I + j2] = weightL;
-                                else       // se il neurone di interesse è inibitorio
-                                    W[i1 * Constants.LIQUID_DIMENSION_I + j1, i2 * Constants.LIQUID_DIMENSION_I + j2] = -weightL;
-                            else
-                                W[i1 * Constants.LIQUID_DIMENSION_I + j1, i2 * Constants.LIQUID_DIMENSION_I + j2] = 0;
-
-
-                            double[] value = new double[4];
-                            value[0] = 5 / 2;
-                            value[1] = 10 / 2;
-                            value[2] = 30 / 2;
-                            value[3] = 50 / 2;
-                            double tau = 1;
-
-                            double wheel = (((rand.Next(100))) / 100.0);
-                            if (wheel < 0.25)
-                                tau = value[0];
-                            if ((wheel >= 0.25) && (wheel < 0.5))
-                                tau = value[1];
-                            if ((wheel >= 0.5) && (wheel < 0.75))
-                                tau = value[2];
-                            if (wheel >= 0.75)
-                                tau = value[3];
-
-
-
-                            Synapse syn = new Synapse(start, dest, W[i1 * Constants.LIQUID_DIMENSION_I + j1, i2 * Constants.LIQUID_DIMENSION_I + j2],
-                                tau,
-                                Constants.LIQUID_TO_LIQUID_DELAY_STEP,
-                                Constants.LIQUID_TO_LIQUID_SYNAPTIC_GAIN);
-
-                            _liquidToLiquid.AddLast(syn);
                         }
                 }
         }
@@ -419,7 +385,7 @@ namespace SLN
             else
             {
 
-                if (_liquid.Option == 3)
+                if (true)
                 {
                     //PSEUDO-INVERSA SENZA RUMORE
                     double[,] Z = new double[Constants.LIQUID_DIMENSION_I * Constants.LIQUID_DIMENSION_J, Constants.SIMULATION_STEPS_LIQUID];
@@ -481,7 +447,7 @@ namespace SLN
 
                 }
 
-                if (_liquid.Option == 5)
+                if (true)
                 {
 
                     //NEW VERSION - PSEUDO-INVERSA CON RUMORE
@@ -634,7 +600,75 @@ namespace SLN
             }
 
         }
+        public struct Connection
+        {
+            public int i;  // Neuron in the input layer
+            public int j;  // Neuron in the liquid layer
+            public double w;  // Weight of the connection
 
+            public Connection(int i, int j, double w)
+            {
+                this.i = i;
+                this.j = j;
+                this.w = w;
+            }
+        }
+        public void ConnectInputToLiquid()
+        {
+            Random rnd = new Random();
+            connectivityMatrix = new LinkedList<Connection>[Constants.FIRST_LAYER_DIMENSION_I, Constants.FIRST_LAYER_DIMENSION_J];
+            for (int i = 0; i < Constants.FIRST_LAYER_DIMENSION_I; i++)
+                for (int j = 0; j < Constants.FIRST_LAYER_DIMENSION_J; j++)
+                {
+                    connectivityMatrix[i, j] = new LinkedList<Connection>();
+
+                    for (int l1 = 0; l1 < Constants.LIQUID_DIMENSION_I; l1++)
+                        for (int l2 = 0; l2 < Constants.LIQUID_DIMENSION_J; l2++)
+                            //if (rnd.NextDouble() < ((double)Constants.Single_INPUT_TO_LIQUID_CONNECTIONS / (Constants.LIQUID_DIMENSION_I * Constants.LIQUID_DIMENSION_J)))
+                            if (rnd.NextDouble() < 0.5)
+                            {
+                                double weight = NextGaussian(2.65, 0.025, 0, 14.9);
+                                connectivityMatrix[i, j].AddLast(new Connection(l1, l2, weight));
+                            }
+                }
+        }
+
+        public void SetLiquidCurrent(double[,] input_current, double gain)
+        {
+            for (int i = 0; i < Constants.FIRST_LAYER_DIMENSION_I; i++)
+                for (int j = 0; j < Constants.FIRST_LAYER_DIMENSION_J; j++)
+                    foreach (Connection conn in connectivityMatrix[i, j])
+                        getLiquidLayerNeuron(conn.i, conn.j).IBias += input_current[i, j] * conn.w * gain;
+            return;
+        }
+        public void ResetLiquidBiasCurrent(double[,] input_current)
+        {
+            for (int i = 0; i < Constants.LIQUID_DIMENSION_I; i++)
+                for (int j = 0; j < Constants.LIQUID_DIMENSION_J; j++)
+                    getLiquidLayerNeuron(i, j).IBias = 0;
+            return;
+        }
+
+        public double[,] GetLiquidStates(int step, double tau)
+        {
+            double[,] states = new double[Constants.LIQUID_DIMENSION_I, Constants.LIQUID_DIMENSION_J];
+            for (int i = 0; i < Constants.LIQUID_DIMENSION_I; i++)
+                for (int j = 0; j < Constants.LIQUID_DIMENSION_J; j++)
+                {
+                    states[i, j] = getLiquidLayerNeuron(i, j).getState(step, tau);
+                }
+            return states;
+        }
+
+        public void AddLiquidStates(double[,] states, int row, int step, double tau)
+        {
+            for (int i = 0; i < Constants.LIQUID_DIMENSION_I; i++)
+                for (int j = 0; j < Constants.LIQUID_DIMENSION_J; j++)
+                {
+                    states[row, i * Constants.LIQUID_DIMENSION_J + j] = getLiquidLayerNeuron(i, j).getState(step, tau);
+                }
+
+        }
 
         /// <summary>
         /// Initializes the synapses between layers, saving the configuration
@@ -643,8 +677,9 @@ namespace SLN
         /// <param name="synSav">The configuration saver object</param>
         private void initSynapseLayers(SynapseSaver synSav)
         {
-            initFirstToFirst1();
-            initFirstToLiquid(synSav);
+            //initFirstToFirst1();
+            //initFirstToLiquid(synSav);
+            ConnectInputToLiquid();
             initLiquidToLiquid();
         }
 
@@ -723,12 +758,31 @@ namespace SLN
 
 
 
-            _liquid.resetState();
+            // _liquid.resetState();
             //_layers.resetNeuronsState();
 
 
             return 1;
         }
+
+
+
+        /// <summary>
+        /// Simulates the entire network with the Liquid State
+        /// </summary>
+        /// <param name="simNumber">Number of the simulation</param>
+        /// <param name="learning">If <i>true</i> sets the learning on</param>
+        //ritorna un intero, non un double
+        public double simulateLiquid(int nsteps)
+        {
+            for (int step = 0; step < nsteps; step++)
+            {
+                _liquid.simulate(step, null);
+            }
+
+            return 1;
+        }
+
 
 
 
