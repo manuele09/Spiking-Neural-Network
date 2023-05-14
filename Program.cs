@@ -27,6 +27,7 @@ using Accord.Statistics.Models;
 using System.Windows.Input;
 using System.Globalization;
 using Accord.Math;
+using CSML;
 
 namespace SLN
 {
@@ -35,7 +36,9 @@ namespace SLN
     /// </summary>
 	public class Program
     {
-
+        //stim_interval = 300;
+        //stim_lenght = 50;
+        //readout_delay = 50;
 
         /// <summary>
         /// The Main method
@@ -43,49 +46,95 @@ namespace SLN
         /// <param name="args">Currently not used</param>
         public static void Main(string[] args)
         {
+            String prediction_frame_path = "../../../PyScript/video_1/SimTestPred/";
+            String prediction_frame_name = "_prediction.txt";
 
-            String pathPc = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            String frame_path = "../../../PyScript/video_1/frames_DVS/";
-            String frame_name = "_frame_DVS.txt";
-            double[,] input_matrix;
-            double[,] liquid_state = new double[50, Constants.LIQUID_DIMENSION_I * Constants.LIQUID_DIMENSION_J];
-            double[,] targets = new double[50, Constants.FIRST_LAYER_DIMENSION_I * Constants.FIRST_LAYER_DIMENSION_J];
+            String train_frame_path = "../../../PyScript/video_1/train_target/";
+            String train_frame_name = "_train_target.txt";
+            int n_train = 25;
+
+            String test_frame_path = "../../../PyScript/video_1/test_target/";
+            String test_frame_name = "_test_target.txt";
+
+            //test_frame_path = train_frame_path;
+            //test_frame_name = train_frame_name;
+            int n_test = 25;
+
             double sample_time = 10; //ms
             int sample_steps = (int)(sample_time / Constants.INTEGRATION_STEP);
 
+            double[,] input_matrix; //input_i * input_j
+            double[,] liquid_states_train = new double[n_train, Constants.LIQUID_DIMENSION_I * Constants.LIQUID_DIMENSION_J];
+            double[,] liquid_state_test = new double[1, Constants.LIQUID_DIMENSION_I * Constants.LIQUID_DIMENSION_J];
+            double[,] targets_train = new double[50, Constants.FIRST_LAYER_DIMENSION_I * Constants.FIRST_LAYER_DIMENSION_J];
 
-            //Network net = BinarySerialization.ReadFromBinaryFile<Network>("net.bin");
-           Network net = Network.generateNetwork();
-            for (int i = 0; i < 51; i++)
+            #region Training
+            Network net = Network.generateNetwork();
+            for (int i = 0; i < n_train; i++)
             {
+                //Leggo il frame da file
                 if (i == 0)
-                    input_matrix = ReadMatrixFromFile(frame_path + i + frame_name); 
-                else
-                    input_matrix = ReadMatrixFromFile(frame_path + i + frame_name, targets, i - 1); //stato futuro
+                    input_matrix = ReadMatrixFromFile(train_frame_path + i + train_frame_name);
+                else //lo salvo come target (predizione futura)
+                    input_matrix = ReadMatrixFromFile(train_frame_path + i + train_frame_name, targets_train, i - 1); //stato futuro
+
+                //Lo do in input come corrente
                 net.SetLiquidCurrent(input_matrix, 3);
-                net.simulateLiquid(sample_steps);
-                if (i != 50)
-                    net.AddLiquidStates(liquid_state, i, sample_steps, 3); //stato passato
+
+                //simulo il liquido
+                net.simulateLiquid(sample_steps * i, sample_steps);
+
+                //Leggo lo stato del liquido e lo aggiungo alla matrice degli stati
+                if (i != (n_train - 1))
+                    net.AddLiquidStates(liquid_states_train, i, sample_steps * (i + 1) - 1, 3); //stato passato
+
                 Console.WriteLine("Simulato" + i);
             }
 
-            // S  * W = T;
-            //N*d  d*y N*y 
-            double[,] W = liquid_state.PseudoInverse().Multiply(targets);
+            //Calcolo i Pesi e li salvo nel network.
+            double[,] inv = addBias(liquid_states_train).PseudoInverse();
+            double[,] W = inv.Dot(targets_train);
             net.saveWeights(W);
-            //WriteMatrixToFile(liquid_state, "../../../PyScript/video_1/LiquidStates/" + i + "_liquid.txt");
-            //PrintMatrix(liquid_state);
 
-            BinarySerialization.WriteToBinaryFile("net.bin", net);  
+            // BinarySerialization.WriteToBinaryFile("net.bin", net);
+            net.resetLiquid();
+            #endregion
 
+            #region Testing
+            // Network net = BinarySerialization.ReadFromBinaryFile<Network>("net.bin");
+            for (int i = 0; i < n_test - 1; i++)
+            {
+                input_matrix = ReadMatrixFromFile(test_frame_path + i + test_frame_name);
+                net.SetLiquidCurrent(input_matrix, 3);
+                net.simulateLiquid(sample_steps * i, sample_steps);
+                net.AddLiquidStates(liquid_state_test, 0, sample_steps * (i + 1) - 1, 3);
 
+                WritePreditction(addBias(liquid_state_test).Dot(net.W), prediction_frame_path + i + prediction_frame_name);
+                Console.WriteLine("Simulato" + i);
+            }
+
+            #endregion
 
         }
 
 
 
 
+        public static double[,] addBias(double[,] matrix)
+        {
+            int rowCount = matrix.GetLength(0);
+            int colCount = matrix.GetLength(1);
 
+            double[,] bias = new double[rowCount, colCount + 1];
+            for (int i = 0; i < rowCount; i++)
+                for (int j = 0; j < colCount + 1; j++)
+                    if (j == 0)
+                        bias[i, j] = 1;
+                    else
+                        bias[i, j] = matrix[i, j - 1];
+
+            return bias;
+        }
 
         public static double[,] ReadMatrixFromFile(string filename)
         {
@@ -161,6 +210,7 @@ namespace SLN
                 int rowCount = matrix.GetLength(0);
                 int colCount = matrix.GetLength(1);
 
+
                 for (int i = 0; i < rowCount; i++)
                 {
                     for (int j = 0; j < colCount; j++)
@@ -171,24 +221,50 @@ namespace SLN
                 }
             }
         }
-        public static void PrintMatrix(double[,] matrix)
+
+        public static void WritePreditction(double[,] prediction, string filePath)
         {
-            if (matrix == null)
+            using (StreamWriter file = new StreamWriter(filePath))
+            {
+
+
+
+                for (int i = 0; i < Constants.FIRST_LAYER_DIMENSION_I; i++)
+                {
+                    for (int j = 0; j < Constants.FIRST_LAYER_DIMENSION_J; j++)
+                    {
+                        if (prediction[0, i * Constants.FIRST_LAYER_DIMENSION_J + j] > 0.25) //0.09
+                            file.Write(1.ToString(CultureInfo.InvariantCulture) + " ");
+                        else
+                            file.Write(0.ToString(CultureInfo.InvariantCulture) + " ");
+                        //file.Write(prediction[0, i * Constants.FIRST_LAYER_DIMENSION_J + j].ToString(CultureInfo.InvariantCulture) + " ");
+
+                    }
+                    file.WriteLine();
+
+                }
+            }
+        }
+        public static void PrintMatrix(double[,] matrix1, double[,] matrix2)
+        {
+            if (matrix1 == null)
             {
                 Console.WriteLine("Matrix is null");
                 return;
             }
 
-            int rowCount = matrix.GetLength(0);
-            int colCount = matrix.GetLength(1);
+            int rowCount = matrix1.GetLength(0);
+            int colCount = matrix1.GetLength(1);
 
             for (int i = 0; i < rowCount; i++)
             {
                 for (int j = 0; j < colCount; j++)
                 {
-                    Console.Write(matrix[i, j] + " ");
+                    // Console.Write(matrix1[i, j]- matrix2[i, j] + " ");
+                    if ((matrix1[i, j] - matrix2[i, j]) > 0.1)
+                        Console.WriteLine(matrix1[i, j]);
                 }
-                Console.WriteLine();
+                //Console.WriteLine();
             }
         }
 

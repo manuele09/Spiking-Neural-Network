@@ -18,7 +18,7 @@ namespace SLN
     [Serializable]
     public class Network
     {
-
+        [Serializable]
         public struct Connection
         {
             public int i;  // Neuron in the input layer
@@ -38,7 +38,8 @@ namespace SLN
         private LinkedList<Connection>[,] connectivityMatrix;
         private LiquidState _liquid;
 
-        private double[,] W = new double[Constants.LIQUID_DIMENSION_I * Constants.LIQUID_DIMENSION_J, Constants.FIRST_LAYER_DIMENSION_I * Constants.FIRST_LAYER_DIMENSION_J];
+
+        public double[,] W = new double[Constants.LIQUID_DIMENSION_I * Constants.LIQUID_DIMENSION_J, Constants.FIRST_LAYER_DIMENSION_I * Constants.FIRST_LAYER_DIMENSION_J];
         private Random rand;
 
         /// <summary>
@@ -53,7 +54,10 @@ namespace SLN
             ConnectInputToLiquid();
             initLiquidToLiquid();
         }
-
+        public void resetLiquid()
+        {
+            _liquid.resetState();
+        }
         internal void saveWeights(double[,] w)
         {
             W = (double[,])w.Clone();
@@ -170,13 +174,14 @@ namespace SLN
 
         public void SetLiquidCurrent(double[,] input_current, double gain)
         {
+            this.ResetLiquidBiasCurrent();
             for (int i = 0; i < Constants.FIRST_LAYER_DIMENSION_I; i++)
                 for (int j = 0; j < Constants.FIRST_LAYER_DIMENSION_J; j++)
                     foreach (Connection conn in connectivityMatrix[i, j])
                         getLiquidLayerNeuron(conn.i, conn.j).IBias += input_current[i, j] * conn.w * gain;
             return;
         }
-        public void ResetLiquidBiasCurrent(double[,] input_current)
+        public void ResetLiquidBiasCurrent()
         {
             for (int i = 0; i < Constants.LIQUID_DIMENSION_I; i++)
                 for (int j = 0; j < Constants.LIQUID_DIMENSION_J; j++)
@@ -214,11 +219,11 @@ namespace SLN
         /// <param name="simNumber">Number of the simulation</param>
         /// <param name="learning">If <i>true</i> sets the learning on</param>
         //ritorna un intero, non un double
-        public double simulateLiquid(int nsteps)
+        public double simulateLiquid(int start_step, int nsteps)
         {
             for (int step = 0; step < nsteps; step++)
             {
-                _liquid.simulate(step, null);
+                _liquid.simulate(step + start_step, null);
             }
 
             return 1;
