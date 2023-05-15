@@ -36,12 +36,12 @@
         /// <summary>
         /// Number of rows in the Liquid state
         /// </summary>
-        public const int LIQUID_DIMENSION_I = 40;
+        public const int LIQUID_DIMENSION_I = 10;
 
         /// <summary>
         /// Number of columns in the Liquid
         /// </summary>
-        public const int LIQUID_DIMENSION_J = 40;
+        public const int LIQUID_DIMENSION_J = 10;
 
 		/// <summary>
 		/// Radius of the neighborhood for each neuron in the second layer

@@ -48,11 +48,6 @@ namespace SLN
             return _liquidState[i, j];
         }
 
-        internal double getLiquidLayerNeuronFrequency(int i, int j, int window)
-        {
-            return _liquidState[i, j].getFrequencyWindow(window);
-        }
-
 
 
         //perché chiamare simulateLiquid con simulate???
@@ -69,14 +64,7 @@ namespace SLN
 
         }
 
-        /// <summary>
-        /// Reset the active variable in the Liquid State
-        internal void resetActive()
-        {
-            foreach (Class1Neuron n in _liquidState)
-                n.Active = false;
 
-        }
 
         /// <summary>
         /// Simulates the Liquid State
@@ -101,10 +89,6 @@ namespace SLN
             foreach (Class1Neuron n in _liquidState)
                 n.resetState();
         }
-        internal void resetSpikeList()
-        {
-            foreach (Class1Neuron n in _liquidState)
-                n.resetSpikeList();
-        }
+
     }
 }

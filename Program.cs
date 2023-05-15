@@ -70,6 +70,7 @@ namespace SLN
 
             #region Training
             Network net = Network.generateNetwork();
+
             for (int i = 0; i < n_train; i++)
             {
                 //Leggo il frame da file
@@ -233,11 +234,11 @@ namespace SLN
                 {
                     for (int j = 0; j < Constants.FIRST_LAYER_DIMENSION_J; j++)
                     {
-                        if (prediction[0, i * Constants.FIRST_LAYER_DIMENSION_J + j] > 0.25) //0.09
+                        /*if (prediction[0, i * Constants.FIRST_LAYER_DIMENSION_J + j] > 0.25) //0.09
                             file.Write(1.ToString(CultureInfo.InvariantCulture) + " ");
                         else
-                            file.Write(0.ToString(CultureInfo.InvariantCulture) + " ");
-                        //file.Write(prediction[0, i * Constants.FIRST_LAYER_DIMENSION_J + j].ToString(CultureInfo.InvariantCulture) + " ");
+                            file.Write(0.ToString(CultureInfo.InvariantCulture) + " ");*/
+                        file.Write(prediction[0, i * Constants.FIRST_LAYER_DIMENSION_J + j].ToString(CultureInfo.InvariantCulture) + " ");
 
                     }
                     file.WriteLine();

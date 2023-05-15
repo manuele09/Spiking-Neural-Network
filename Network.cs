@@ -66,10 +66,7 @@ namespace SLN
         {
             return _liquid.getLiquidLayerNeuron(i, j);
         }
-        internal double getLiquidLayerNeuronFreq(int i, int j, int window)
-        {
-            return _liquid.getLiquidLayerNeuronFrequency(i, j, window);
-        }
+
 
 
         public double NextGaussian(double mu, double sigma)
@@ -224,6 +221,16 @@ namespace SLN
             for (int step = 0; step < nsteps; step++)
             {
                 _liquid.simulate(step + start_step, null);
+
+                Parallel.ForEach(_liquidToLiquid, syn =>
+                {
+                    syn.simulate(step);
+                });
+
+                /*foreach (Synapse syn in _liquidToLiquid)
+                {
+                    syn.simulate(step);
+                }*/
             }
 
             return 1;
