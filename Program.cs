@@ -9,10 +9,7 @@
  */
 //Strumenti -> Gestione Pacchetti Nuget -> Console Gestione di Pacchetti -> PM> Install-Package System.Threading.dll
 
-//Le scritture su file impiegano il 30% dell'esecuzione
-//verificare che la non simulazione delle sinapsi inibitorie del context
-//non influiscano eccessivamente sulla normale esecuzione
-//modifica morris con izikevich
+
 
 using System.Collections.Generic;
 using System;
@@ -44,7 +41,7 @@ namespace SLN
         /// The Main method
         /// </summary>
         /// <param name="args">Currently not used</param>
-        public static void Main(string[] args)
+        public static void Main()
         {
             String prediction_frame_path = "../../../PyScript/video_1/SimTestPred/";
             String prediction_frame_name = "_prediction.txt";
@@ -56,63 +53,96 @@ namespace SLN
             String test_frame_path = "../../../PyScript/video_1/test_target/";
             String test_frame_name = "_test_target.txt";
 
-            //test_frame_path = train_frame_path;
-            //test_frame_name = train_frame_name;
+            test_frame_path = train_frame_path;
+            test_frame_name = train_frame_name;
             int n_test = 25;
 
-            double sample_time = 10; //ms
-            int sample_steps = (int)(sample_time / Constants.INTEGRATION_STEP);
 
-            double[,] input_matrix; //input_i * input_j
-            double[,] liquid_states_train = new double[n_train, Constants.LIQUID_DIMENSION_I * Constants.LIQUID_DIMENSION_J];
-            double[,] liquid_state_test = new double[1, Constants.LIQUID_DIMENSION_I * Constants.LIQUID_DIMENSION_J];
-            double[,] targets_train = new double[50, Constants.FIRST_LAYER_DIMENSION_I * Constants.FIRST_LAYER_DIMENSION_J];
+            double stim_interval = 10; //ms
+            double stim_lenght = 10; //ms
+            double readout_delay = 0; //ms
+
+
+            int stim_interval_steps = (int)(stim_interval / Constants.INTEGRATION_STEP);
+            int stim_lenght_steps = (int)(stim_lenght / Constants.INTEGRATION_STEP);
+            int readout_delay_steps = (int)(readout_delay / Constants.INTEGRATION_STEP);
+
+            int input_size = 100;
+            int output_size = 64 * 64;
+
+            int n_exc = input_size;
+            int n_inh = 80;
+            int n_rec = n_exc;
+
+            double[] input_vector; //input_size 
+            double[] prediction_vector;
+
+            LSM liquid = new LSM(n_exc, n_inh, n_rec, output_size);
+
+            Model model = new Model(input_size, output_size, n_train);
 
             #region Training
-            Network net = Network.generateNetwork();
-
             for (int i = 0; i < n_train; i++)
             {
-                //Leggo il frame da file
-                if (i == 0)
-                    input_matrix = ReadMatrixFromFile(train_frame_path + i + train_frame_name);
-                else //lo salvo come target (predizione futura)
-                    input_matrix = ReadMatrixFromFile(train_frame_path + i + train_frame_name, targets_train, i - 1); //stato futuro
+                //Leggo il frame da file, e determino l'input current
+                input_vector = ReadVectorFromFile(train_frame_path + i + train_frame_name);
+                if (i != 0)
+                    model.AddToYTraining(input_vector);
 
                 //Lo do in input come corrente
-                net.SetLiquidCurrent(input_matrix, 3);
+                liquid.SetLiquidCurrent(input_vector, 3);
 
-                //simulo il liquido
-                net.simulateLiquid(sample_steps * i, sample_steps);
+                //simulo il liquido per stim_lenght ms
+                liquid.simulateLiquid(stim_lenght_steps, true);
+
+                liquid.ResetLiquidBiasCurrent();
+                liquid.simulateLiquid(stim_interval_steps - stim_lenght_steps, true);
 
                 //Leggo lo stato del liquido e lo aggiungo alla matrice degli stati
                 if (i != (n_train - 1))
-                    net.AddLiquidStates(liquid_states_train, i, sample_steps * (i + 1) - 1, 3); //stato passato
+                    model.AddToXTraining(liquid.GetLiquidStates(liquid.current_step - (stim_interval_steps - stim_lenght_steps - readout_delay_steps), 3));
 
                 Console.WriteLine("Simulato" + i);
+
             }
 
             //Calcolo i Pesi e li salvo nel network.
-            double[,] inv = addBias(liquid_states_train).PseudoInverse();
-            double[,] W = inv.Dot(targets_train);
-            net.saveWeights(W);
+            model.LearnW();
+            Console.WriteLine(model.ComputeTrainLoss());
 
-            // BinarySerialization.WriteToBinaryFile("net.bin", net);
-            net.resetLiquid();
+            //BinarySerialization.WriteToBinaryFile("net.bin", liquid);
+            liquid.resetState();
             #endregion
-
             #region Testing
-            // Network net = BinarySerialization.ReadFromBinaryFile<Network>("net.bin");
-            for (int i = 0; i < n_test - 1; i++)
-            {
-                input_matrix = ReadMatrixFromFile(test_frame_path + i + test_frame_name);
-                net.SetLiquidCurrent(input_matrix, 3);
-                net.simulateLiquid(sample_steps * i, sample_steps);
-                net.AddLiquidStates(liquid_state_test, 0, sample_steps * (i + 1) - 1, 3);
 
-                WritePreditction(addBias(liquid_state_test).Dot(net.W), prediction_frame_path + i + prediction_frame_name);
+            // Network net = BinarySerialization.ReadFromBinaryFile<Network>("net.bin");
+            for (int i = 0; i < n_train; i++)
+            {
+                //Leggo il frame da file, e determino l'input current
+                input_vector = ReadVectorFromFile(train_frame_path + i + train_frame_name);
+                if (i != 0)
+                    model.AddToYTesting(input_vector);
+
+                //Lo do in input come corrente
+                liquid.SetLiquidCurrent(input_vector, 3);
+
+                //simulo il liquido per stim_lenght ms
+                liquid.simulateLiquid(stim_lenght_steps, true);
+
+                liquid.ResetLiquidBiasCurrent();
+                liquid.simulateLiquid(stim_interval_steps - stim_lenght_steps, true);
+
+                //Leggo lo stato del liquido e lo aggiungo alla matrice degli stati
+                if (i != (n_train - 1))
+                    model.AddToXTesting(liquid.GetLiquidStates(liquid.current_step - (stim_interval_steps - stim_lenght_steps - readout_delay_steps), 3));
+
                 Console.WriteLine("Simulato" + i);
+
+                prediction_vector = model.ComputePrediction(liquid.GetLiquidStates(liquid.current_step - (stim_interval_steps - stim_lenght_steps - readout_delay_steps), 3));
+                WriteMatrixToFile(VectorToMatrix(prediction_vector, 64, 64), prediction_frame_path + i + prediction_frame_name,-1);
+
             }
+            Console.WriteLine(model.ComputeTestLoss());
 
             #endregion
 
@@ -120,7 +150,14 @@ namespace SLN
 
 
 
-
+        public static double[] MatrixToVector(double[,] matrix)
+        {
+            double[] vector = new double[matrix.GetLength(0) * matrix.GetLength(1)];
+            for (int i = 0; i < matrix.GetLength(0); i++)
+                for (int j = 0; j < matrix.GetLength(1); j++)
+                    vector[i * matrix.GetLength(1) + j] = matrix[i, j];
+            return vector;
+        }
         public static double[,] addBias(double[,] matrix)
         {
             int rowCount = matrix.GetLength(0);
@@ -142,19 +179,51 @@ namespace SLN
             try
             {
                 var lines = File.ReadAllLines(filename);
-                int matrixSize = lines.Length;
-                double[,] matrix = new double[matrixSize, matrixSize];
+                double[,] matrix = new double[lines.Length, lines.Length];
 
-                for (int i = 0; i < matrixSize; i++)
+                for (int i = 0; i < lines.Length; i++)
                 {
                     var line = lines[i].Split(' ').Select(int.Parse).ToArray();
-                    for (int j = 0; j < matrixSize; j++)
+                    for (int j = 0; j < lines.Length; j++)
                     {
                         matrix[i, j] = line[j];
                     }
                 }
 
                 return matrix;
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine("An error occurred while reading the file:");
+                Console.WriteLine(e.Message);
+                return null;
+            }
+            catch (FormatException e)
+            {
+                Console.WriteLine("An error occurred while parsing the matrix:");
+                Console.WriteLine(e.Message);
+                return null;
+            }
+        }
+        public static double[] ReadVectorFromFile(string filename)
+        {
+            try
+            {
+                var lines = File.ReadAllLines(filename);
+                double[] vector = new double[lines.Length * lines.Length];
+                int index = 0;
+
+
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    var line = lines[i].Split(' ').Select(int.Parse).ToArray();
+                    for (int j = 0; j < line.Length; j++)
+                    {
+                        vector[index++] = line[j];
+                    }
+                }
+
+                return vector;
             }
             catch (IOException e)
             {
@@ -204,41 +273,32 @@ namespace SLN
             }
         }
 
-        public static void WriteMatrixToFile(double[,] matrix, string filePath)
+        public static double[,] VectorToMatrix(double[] vector, int dim1, int dim2)
         {
-            using (StreamWriter file = new StreamWriter(filePath))
-            {
-                int rowCount = matrix.GetLength(0);
-                int colCount = matrix.GetLength(1);
-
-
-                for (int i = 0; i < rowCount; i++)
-                {
-                    for (int j = 0; j < colCount; j++)
-                        file.Write(matrix[i, j].ToString(CultureInfo.InvariantCulture) + " ");
-                    // Write a newline character after each row except the last one
-                    if (i < rowCount - 1)
-                        file.WriteLine();
-                }
-            }
+            double[,] matrix = new double[dim1, dim2];
+            for (int i = 0; i < dim1; i++)
+                for (int j = 0; j < dim2; j++)
+                    matrix[i, j] = vector[i * dim2 + j];
+            return matrix;
         }
-
-        public static void WritePreditction(double[,] prediction, string filePath)
+        public static void WriteMatrixToFile(double[,] matrix, string filePath, double treshold)
         {
             using (StreamWriter file = new StreamWriter(filePath))
             {
 
-
-
-                for (int i = 0; i < Constants.FIRST_LAYER_DIMENSION_I; i++)
+                for (int i = 0; i < matrix.GetLength(0); i++)
                 {
-                    for (int j = 0; j < Constants.FIRST_LAYER_DIMENSION_J; j++)
+                    for (int j = 0; j < matrix.GetLength(1); j++)
                     {
-                        /*if (prediction[0, i * Constants.FIRST_LAYER_DIMENSION_J + j] > 0.25) //0.09
-                            file.Write(1.ToString(CultureInfo.InvariantCulture) + " ");
+                        if (treshold > 0)
+                        {
+                            if (matrix[i, j] > 0.5)
+                                file.Write(1.ToString(CultureInfo.InvariantCulture) + " ");
+                            else
+                                file.Write(0.ToString(CultureInfo.InvariantCulture) + " ");
+                        }
                         else
-                            file.Write(0.ToString(CultureInfo.InvariantCulture) + " ");*/
-                        file.Write(prediction[0, i * Constants.FIRST_LAYER_DIMENSION_J + j].ToString(CultureInfo.InvariantCulture) + " ");
+                            file.Write(matrix[i, j].ToString(CultureInfo.InvariantCulture) + " ");
 
                     }
                     file.WriteLine();
@@ -246,7 +306,7 @@ namespace SLN
                 }
             }
         }
-        public static void PrintMatrix(double[,] matrix1, double[,] matrix2)
+        public static void PrintMatrix(double[,] matrix1)
         {
             if (matrix1 == null)
             {
@@ -262,10 +322,10 @@ namespace SLN
                 for (int j = 0; j < colCount; j++)
                 {
                     // Console.Write(matrix1[i, j]- matrix2[i, j] + " ");
-                    if ((matrix1[i, j] - matrix2[i, j]) > 0.1)
-                        Console.WriteLine(matrix1[i, j]);
+
+                    Console.Write(matrix1[i, j]);
                 }
-                //Console.WriteLine();
+                Console.WriteLine();
             }
         }
 

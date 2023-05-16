@@ -185,6 +185,8 @@ namespace SLN
 		/// time a reward was triggered</param>
 		internal void learn(int rewardOffset, int nOldSpikes)
 		{
+            //stare attenti all'uso modificato di nspikes
+
 			for (int k = 0; k < Start.NSpikes; k++)
 			{
 				int tSpkStart = Start.getSpikeAt(k);
@@ -385,47 +387,8 @@ namespace SLN
 			return String.Format("{0:F2}", _W);
 		}
 
-        /// <summary>
-        /// Decay the synaptic weight during the test phase
-        /// </summary>
-        internal void decay()
-        {
-            // Decay
-            _W *= Constants.STDP_DECAY_EXPECTATION;
+  
 
-            // Saturation values
-            _W = _W < stdp_w_lo ? stdp_w_lo : _W;
-            _W = _W > stdp_w_hi ? stdp_w_hi : _W;
-
-            _Wsec = _W;
-        }
-
-        /// <summary>
-        /// Decay the synaptic weight during the test phase in according to the Oja rule
-        /// </summary>
-        internal void decayOja(double threshold)
-        {
-            double decay;
-            double freqStart = Start.getFrequency(Constants.SIMULATION_STEPS_A+Constants.SIMULATION_STEPS_DETOUR);
-            double freqDest = Dest.getFrequency(Constants.SIMULATION_STEPS_A+Constants.SIMULATION_STEPS_DETOUR);
-            freqDest = freqDest / threshold;
-            freqStart = freqStart / threshold;
-            //if (freqDest > 0.2)
-            //    freqStart = 0;
-            if (freqDest > 1)
-                decay = -(freqDest - 1) * freqStart;
-            else
-                decay = 0;
-            
-            // Decay
-            _W += decay;
-
-            // Saturation values
-            _W = _W < stdp_w_lo ? stdp_w_lo : _W;
-            _W = _W > stdp_w_hi ? stdp_w_hi : _W;
-
-            _Wsec = _W;
-        }
 
 
 	}

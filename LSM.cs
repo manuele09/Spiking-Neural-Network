@@ -1,5 +1,9 @@
-﻿using System;
+﻿using Accord.Math;
+using CSML;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,15 +16,16 @@ namespace SLN
         [Serializable]
         public struct Connection
         {
-            public int i;  // Neuron in the input layer
+            public int index;  // Neuron in the input layer
             public double w;  // Weight of the connection
 
-            public Connection(int i, double w)
+            public Connection(int index, double w)
             {
-                this.i = i;
+                this.index = index;
                 this.w = w;
             }
         }
+
         public Neuron[] all_neurons;
         public Neuron[] exc_neurons;
         public Neuron[] inh_neurons;
@@ -30,24 +35,34 @@ namespace SLN
         public int n_inh;
         public int n_rec;
 
-        private Random rand = new Random();
-
         public LinkedList<Synapse> all_synapses;
-        public LinkedList<Connection>[,] connectivityMatrix;
-        public double[,] W = new double[Constants.LIQUID_DIMENSION_I * Constants.LIQUID_DIMENSION_J, Constants.FIRST_LAYER_DIMENSION_I * Constants.FIRST_LAYER_DIMENSION_J];
+        public LinkedList<Connection>[] connectivityMatrix;
+
+
+        private Random rand = new Random(123);
+        public int current_step;
+        public int input_size;
 
 
         /// <summary>
-        /// Constructor
+        /// Initializes a new instance of the Liquid State Machine (LSM) with specified numbers of excitatory,
+        /// inhibitory and readout neurons.
+        /// Populates the LSM with neurons and initializes the synaptic connections between them.
         /// </summary>
-
-        internal LSM(int n_exc, int n_inh, int n_rec)
+        /// <param name="n_exc">Number of excitatory neurons</param>
+        /// <param name="n_inh">Number of inhibitory neurons</param>
+        /// <param name="n_rec">Number of readout neurons</param
+        internal LSM(int n_exc, int n_inh, int n_rec, int input_size)
         {
+            current_step = 0;
+            this.input_size = input_size;
+            connectivityMatrix = new LinkedList<Connection>[input_size];
+
             this.n_exc = n_exc;
             this.n_inh = n_inh;
             this.n_rec = n_rec;
 
-            all_neurons = new Neuron[n_exc + n_inh + n_rec];
+            all_neurons = new Neuron[n_exc + n_inh];
             exc_neurons = new Neuron[n_exc];
             inh_neurons = new Neuron[n_inh];
             rec_neurons = new Neuron[n_rec];
@@ -75,8 +90,20 @@ namespace SLN
             Connect(exc_neurons, inh_neurons, 2, 10 * 25);
             Connect(inh_neurons, exc_neurons, 1, 10 * (-20));
             Connect(inh_neurons, inh_neurons, 1, 10 * (-20));
+
+            ConnectInputToLiquid();
         }
 
+
+
+        /// <summary>
+        /// Connects the pre-synaptic and post-synaptic neurons with specified degree and synaptic efficacy. 
+        /// Assigns weights and delays to the synapses.
+        /// </summary>
+        /// <param name="pre">Array of pre-synaptic neurons</param>
+        /// <param name="post">Array of post-synaptic neurons</param>
+        /// <param name="indegree">Degree of the connections</param>
+        /// <param name="J">Synaptic efficacy</param>
         public void Connect(Neuron[] pre, Neuron[] post, int indegree, double J)
         {
             double delay = NextGaussian(10, 20, 3, 200);
@@ -92,23 +119,28 @@ namespace SLN
                 tau = 2;
             }
 
-            foreach (Neuron post_neuron in post)
+            for (int i = 0; i < post.Length; i++)
             {
                 for (int j = 0; j < indegree; j++)
                 {
-                    Synapse syn = new Synapse(pre[rand.Next(pre.Length)], post_neuron, w, 0, tau, (int)(delay / Constants.INTEGRATION_STEP), 1);
+                    Synapse syn = new Synapse(pre[rand.Next(pre.Length)], post[i], w, 0, tau, (int)(delay / Constants.INTEGRATION_STEP), 1);
                     all_synapses.AddLast(syn);
                 }
             }
         }
 
-        internal void simulateLiquid(int step, bool parallel)
+        /// <summary>
+        /// Simulates a single time step of the entire LSM. Updates the state of all neurons and synapses.
+        /// </summary>
+        /// <param name="step">Current time step</param>
+        /// <param name="parallel">Flag indicating whether to use parallel computation</param>
+        internal void simulateLiquidStep(int step, bool parallel)
         {
             if (!parallel)
             {
-                foreach (Class1Neuron n in all_neurons)
+                for (int i = 0; i < all_neurons.Length; i++)
                 {
-                    n.simulate(step);
+                    all_neurons[i].simulate(step);
                 }
 
                 foreach (Synapse syn in all_synapses)
@@ -118,65 +150,95 @@ namespace SLN
             }
             else
             {
-                Parallel.ForEach(all_neurons, n =>
+                for (int i = 0; i < all_neurons.Length; i++)
                 {
-                    n.simulate(step);
-                });
+                    all_neurons[i].simulate(step);
+                }
 
                 Parallel.ForEach(all_synapses, syn =>
                 {
                     syn.simulate(step);
                 });
+
             }
 
 
         }
 
-        public void simulateLiquid(int start_step, int nsteps, bool parallel)
+        /// <summary>
+        /// Simulates the LSM for a specified number of time steps.
+        /// </summary>
+        /// <param name="nsteps">Number of time steps to simulate</param>
+        /// <param name="parallel">Flag indicating whether to use parallel computation</param>
+        public void simulateLiquid(int nsteps, bool parallel)
         {
             for (int step = 0; step < nsteps; step++)
-                simulateLiquid(step + start_step, parallel);
+            {
+                simulateLiquidStep(current_step++, parallel);
+            }
         }
 
-
+        /// <summary>
+        /// Connects the input layer to the liquid (LSM) with Gaussian weights.
+        /// </summary>
         public void ConnectInputToLiquid()
         {
-            connectivityMatrix = new LinkedList<Connection>[Constants.FIRST_LAYER_DIMENSION_I, Constants.FIRST_LAYER_DIMENSION_J];
             double weight;
-            for (int i = 0; i < Constants.FIRST_LAYER_DIMENSION_I; i++)
-                for (int j = 0; j < Constants.FIRST_LAYER_DIMENSION_J; j++)
+            for (int i = 0; i < input_size; i++)
+            {
+                connectivityMatrix[i] = new LinkedList<Connection>();
+
+                for (int e = 0; e < n_exc; e++)
                 {
-                    connectivityMatrix[i, j] = new LinkedList<Connection>();
-
-                    for (int e = 0; e < n_exc; e++)
-                    {
-                        weight = NextGaussian(2.65, 0.025, 0, 14.9);
-                        connectivityMatrix[i, j].AddLast(new Connection(e, weight));
-                    }
-
+                    weight = NextGaussian(2.65, 0.025, 0, 14.9);
+                    connectivityMatrix[i].AddLast(new Connection(e, weight));
                 }
+
+            }
         }
 
-        public void SetLiquidCurrent(double[,] input_current, double gain)
+        /// <summary>
+        /// Sets the current of the neurons in the LSM based on the provided input current and gain.
+        /// </summary>
+        /// <param name="input_current">2D array of input currents</param>
+        /// <param name="gain">Scaling factor for the currents</param>
+        public void SetLiquidCurrent(double[] input_current, double gain)
         {
             this.ResetLiquidBiasCurrent();
-            for (int i = 0; i < Constants.FIRST_LAYER_DIMENSION_I; i++)
-                for (int j = 0; j < Constants.FIRST_LAYER_DIMENSION_J; j++)
-                    foreach (Connection conn in connectivityMatrix[i, j])
-                        all_neurons[conn.i].IBias += input_current[i, j] * conn.w * gain;
+            for (int i = 0; i < input_current.Length; i++)
+                foreach (Connection conn in connectivityMatrix[i])
+                    exc_neurons[conn.index].IBias += input_current[i] * conn.w * gain;
             return;
         }
+
+        /// <summary>
+        /// Resets the bias current of all neurons in the LSM to zero.
+        /// </summary>
         public void ResetLiquidBiasCurrent()
         {
             for (int i = 0; i < n_exc; i++)
-                    all_neurons[i].IBias = 0;
+                all_neurons[i].IBias = 0;
             return;
         }
+
+        /// <summary>
+        /// Resets the state of all neurons in the LSM.
+        /// </summary>
         internal void resetState()
         {
-            foreach (Class1Neuron n in all_neurons)
-                n.resetState();
+            for (int i = 0; i < all_neurons.Length; i++)
+                all_neurons[i].resetState();
+            foreach (Synapse syn in all_synapses)
+                syn.resetState();
+            current_step = 0;
         }
+
+        /// <summary>
+        /// Generates a Gaussian random number with specified mean and standard deviation.
+        /// </summary>
+        /// <param name="mu">Mean of the Gaussian distribution</param>
+        /// <param name="sigma">Standard deviation of the Gaussian distribution</param>
+        /// <returns>A Gaussian random number</returns>
         public double NextGaussian(double mu, double sigma)
         {
             // These are uniform(0,1) random doubles
@@ -191,6 +253,17 @@ namespace SLN
 
             return randNormal;
         }
+
+        /// <summary>
+        /// Generates a Gaussian random number with specified mean, standard deviation, 
+        /// minimum and maximum values.
+        /// Keeps generating until the generated number falls within the specified range.
+        /// </summary>
+        /// <param name="mu">Mean of the Gaussian distribution</param>
+        /// <param name="sigma">Standard deviation of the Gaussian distribution</param>
+        /// <param name="minValue">Minimum value of the generated number</param>
+        /// <param name="maxValue">Maximum value of the generated number</param>
+        /// <returns>A Gaussian random number within the specified range</returns>
         public double NextGaussian(double mu, double sigma, double minValue, double maxValue)
         {
             double randNormal;
@@ -210,6 +283,55 @@ namespace SLN
             while (randNormal < minValue || randNormal > maxValue);
 
             return randNormal;
+        }
+
+
+        /// <summary>
+        /// Retrieves the states of the readout neurons at a specified time step.
+        /// </summary>
+        /// <param name="step">Time step at which to retrieve the states</param>
+        /// <param name="tau">Time constant</param>
+        /// <returns>Array of neuron states</returns>
+        public double[] GetLiquidStates(int step, double tau)
+        {
+            double[] states = new double[n_rec];
+            for (int i = 0; i < n_rec; i++)
+                states[i] = rec_neurons[i].getState(step, tau);
+
+            return states;
+        }
+
+        public void SaveState(int step, double tau, int dim1, int dim2, String filePath)
+        {
+            double[] state = GetLiquidStates(step, tau);
+            using (StreamWriter file = new StreamWriter(filePath))
+            {
+
+
+                for (int i = 0; i < dim1; i++)
+                {
+                    for (int j = 0; j < dim2; j++)
+                        file.Write(state[i * dim2 + j].ToString(CultureInfo.InvariantCulture) + " ");
+                    // Write a newline character after each row except the last one
+                    if (i < dim1 - 1)
+                        file.WriteLine();
+                }
+            }
+        }
+
+        public void SavePotential(int dim1, int dim2, String filePath)
+        {
+            using (StreamWriter file = new StreamWriter(filePath))
+            {
+                for (int i = 0; i < dim1; i++)
+                {
+                    for (int j = 0; j < dim2; j++)
+                        file.Write((all_neurons[i * dim2 + j].V).ToString(CultureInfo.InvariantCulture) + " ");
+                    // Write a newline character after each row except the last one
+                    if (i < dim1 - 1)
+                        file.WriteLine();
+                }
+            }
         }
 
     }

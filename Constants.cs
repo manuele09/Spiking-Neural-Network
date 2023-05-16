@@ -106,7 +106,7 @@
 		/// <summary>
 		/// Value of each step of integration in ms
 		/// </summary>
-        public const double INTEGRATION_STEP = 0.08;     //0.08;
+        public const double INTEGRATION_STEP = 1;     //0.08;
 
         /// <summary>
         /// Value of each step of integration in ms for the liquid state
