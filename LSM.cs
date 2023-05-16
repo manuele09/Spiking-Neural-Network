@@ -70,7 +70,7 @@ namespace SLN
             //Populating liquid layer
             for (int i = 0; i < n_exc + n_inh; i++)
             {
-                all_neurons[i] = new Class1Neuron();
+                all_neurons[i] = new Neuron();
                 all_neurons[i].IBias = 0; //32
                 all_neurons[i].V = Constants.INITIAL_STATE_V_LIQUID;
                 all_neurons[i].U = Constants.INITIAL_STATE_U_LIQUID;

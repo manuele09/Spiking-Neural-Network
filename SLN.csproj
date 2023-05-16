@@ -130,7 +130,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BinarySerialization.cs" />
-    <Compile Include="Class1Neuron.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="LSM.cs" />
     <Compile Include="Model.cs" />

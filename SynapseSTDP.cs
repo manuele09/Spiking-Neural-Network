@@ -288,7 +288,7 @@ namespace SLN
             //(escludendo quelli per la classificazione)    
 	        for (int k=0;k<Constants.LIQUID_OUTPUT;k++)
 	        {
-                    Class1Neuron start = (Class1Neuron)this.Start;
+                    Neuron start = this.Start;
                     //double I_liquid = start.IOut_array[i];
                     double I_tmp = this.Start.IOut;
 			         // E> vedi form1.h ()riga 1179
