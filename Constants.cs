@@ -240,17 +240,17 @@
         /// <summary>
         /// Parameter <b>B</b> in Izhikevich's Class1 Spiking neuron model
         /// </summary>
-        public const double B_IZH_CLASS1 = -0.1;
+        public const double B_IZH_CLASS1 = 0.2;
 
         /// <summary>
         /// Parameter <b>C</b> in Izhikevich's Class1 Spiking neuron model
         /// </summary>
-        public const double C_IZH_CLASS1 = -55;
+        public const double C_IZH_CLASS1 = -60;
 
         /// <summary>
         /// Parameter <b>D</b> in Izhikevich's Class1 Spiking neuron model
         /// </summary>
-        public const double D_IZH_CLASS1 = 6;
+        public const double D_IZH_CLASS1 = 2;
 
         #region Morris-Lecar neuron
 

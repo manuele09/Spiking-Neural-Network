@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -39,7 +40,7 @@ namespace SLN
         public LinkedList<Connection>[] connectivityMatrix;
 
 
-        private Random rand = new Random(123);
+        private Random rand;
         public int current_step;
         public int input_size;
 
@@ -54,6 +55,7 @@ namespace SLN
         /// <param name="n_rec">Number of readout neurons</param
         internal LSM(int n_exc, int n_inh, int n_rec, int input_size)
         {
+            rand = new Random(123);
             current_step = 0;
             this.input_size = input_size;
             connectivityMatrix = new LinkedList<Connection>[input_size];
@@ -72,6 +74,10 @@ namespace SLN
             {
                 all_neurons[i] = new Neuron();
                 all_neurons[i].IBias = 0; //32
+                all_neurons[i].A = Constants.A_IZH_CLASS1;
+                all_neurons[i].B = Constants.B_IZH_CLASS1;
+                all_neurons[i].C = Constants.C_IZH_CLASS1;
+                all_neurons[i].D = Constants.D_IZH_CLASS1;
                 all_neurons[i].V = Constants.INITIAL_STATE_V_LIQUID;
                 all_neurons[i].U = Constants.INITIAL_STATE_U_LIQUID;
             }
@@ -172,9 +178,12 @@ namespace SLN
         /// <param name="parallel">Flag indicating whether to use parallel computation</param>
         public void simulateLiquid(int nsteps, bool parallel)
         {
+            parallel = false;
             for (int step = 0; step < nsteps; step++)
             {
                 simulateLiquidStep(current_step++, parallel);
+                // if (step > 10)
+                // Console.WriteLine(all_neurons[0]._spikeList.Last());
             }
         }
 
@@ -183,6 +192,7 @@ namespace SLN
         /// </summary>
         public void ConnectInputToLiquid()
         {
+            //provare a connettere ad un numero minore di neuroni
             double weight;
             for (int i = 0; i < input_size; i++)
             {
@@ -207,7 +217,7 @@ namespace SLN
             this.ResetLiquidBiasCurrent();
             for (int i = 0; i < input_current.Length; i++)
                 foreach (Connection conn in connectivityMatrix[i])
-                    exc_neurons[conn.index].IBias += input_current[i] * conn.w * gain;
+                    exc_neurons[conn.index].IBias += input_current[i] * conn.w;  //*3
             return;
         }
 

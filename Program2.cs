@@ -31,7 +31,7 @@ namespace SLN
     /// <summary>
     /// Class containing the Main method
     /// </summary>
-	public class Program
+	public class Program2
     {
         //stim_interval = 300;
         //stim_lenght = 50;
@@ -41,23 +41,16 @@ namespace SLN
         /// The Main method
         /// </summary>
         /// <param name="args">Currently not used</param>
-        public static void Main()
+        public static void Maina()
         {
-
-            String prediction_frame_path = "../../../PyScript/video_1/SimTestPred/";
+            String prediction_frame_path = "../../../PyScript/Classify/";
             String prediction_frame_name = "_prediction.txt";
 
-            String train_frame_path = "../../../PyScript/video_1/train_target/";
-            String train_frame_name = "_train_target.txt";
-            int n_train = 24;
+            String train_frame_path = "../../../PyScript/Classify/";
+            String train_frame_name = "_frame_DVS.txt";
+            int n_train = 15;
 
-            String test_frame_path = "../../../PyScript/video_1/test_target/";
-            String test_frame_name = "_test_target.txt";
-
-            test_frame_path = train_frame_path;
-            test_frame_name = train_frame_name;
-            int n_test = 24;
-
+            
 
             double stim_interval = 150; //ms
             double stim_lenght = 50; //ms
@@ -85,68 +78,76 @@ namespace SLN
             #region Training
             for (int i = 0; i < n_train; i++)
             {
-                Console.WriteLine("Simulando" + i);
-
                 //Leggo il frame da file, e determino l'input current
                 input_vector = ReadVectorFromFile(train_frame_path + i + train_frame_name);
-                if (i != 0)
-                    model.AddToYTraining(input_vector);
 
-                //Lo do in input come corrente
-                liquid.SetLiquidCurrent(input_vector, 2);
-
-                //simulo l'input
-                liquid.simulateLiquid(stim_lenght_steps, true);
-                liquid.ResetLiquidBiasCurrent();
-
-                //simulo per read_out_steps
-                liquid.simulateLiquid(readout_delay_steps, true);
-
-                //calcolo gli stati
-                if (i != (n_train - 1))
-                    model.AddToXTraining(liquid.GetLiquidStates(liquid.current_step, 3));
-                
-                //simulo i rimanenti steps
-                liquid.simulateLiquid(stim_interval_steps - stim_lenght_steps - readout_delay_steps, true);
-            }
-
-            //Calcolo i Pesi
-            model.LearnW();
-            Console.WriteLine(model.ComputeTrainLoss());
-            liquid.resetState();
-
-            //BinarySerialization.WriteToBinaryFile("net.bin", liquid);
-            #endregion
-            #region Testing
-
-            // Network net = BinarySerialization.ReadFromBinaryFile<Network>("net.bin");
-            for (int i = 0; i < n_test; i++)
-            {
-                Console.WriteLine("Simulando" + i);
-
-                //Leggo il frame da file, e determino l'input current
-                input_vector = ReadVectorFromFile(test_frame_path + i + test_frame_name);
+                model.AddToYTraining(input_vector);
 
                 //Lo do in input come corrente
                 liquid.SetLiquidCurrent(input_vector, 2);
 
                 //simulo il liquido per stim_lenght ms
                 liquid.simulateLiquid(stim_lenght_steps, true);
+
                 liquid.ResetLiquidBiasCurrent();
 
-                //simulo per read_out_steps
                 liquid.simulateLiquid(readout_delay_steps, true);
 
-                //calcolo gli stati
-                prediction_vector = model.ComputePrediction(liquid.GetLiquidStates(liquid.current_step, 3));
-                WriteMatrixToFile(VectorToMatrix(prediction_vector, 64, 64), prediction_frame_path + i + prediction_frame_name, -0.5);
+                //Leggo lo stato del liquido e lo aggiungo alla matrice degli stati
+                model.AddToXTraining(liquid.GetLiquidStates(liquid.current_step, 3));
+                WriteMatrixToFile(VectorToMatrix(liquid.GetLiquidStates(liquid.current_step, 3), 10, 10), "../../../PyScript/Liquido/train/" + i + "liquid.txt", -1);
 
-                //simulo i rimanenti steps
                 liquid.simulateLiquid(stim_interval_steps - stim_lenght_steps - readout_delay_steps, true);
+
+
+                Console.WriteLine("Simulato" + i);
+
+
             }
+
+            //Calcolo i Pesi e li salvo nel network.
+            model.LearnW();
+            Console.WriteLine(model.ComputeTrainLoss());
+
+            //BinarySerialization.WriteToBinaryFile("net.bin", liquid);
+            liquid.resetState();
 
 
             #endregion
+            liquid = new LSM(n_exc, n_inh, n_rec, output_size);
+
+
+            for (int i = 0; i < n_train; i++)
+            {
+                //Leggo il frame da file, e determino l'input current
+                input_vector = ReadVectorFromFile(train_frame_path + i + train_frame_name);
+
+                model.AddToYTesting(input_vector);
+
+                //Lo do in input come corrente
+                liquid.SetLiquidCurrent(input_vector, 2);
+
+                //simulo il liquido per stim_lenght ms
+                liquid.simulateLiquid(stim_lenght_steps, true);
+
+                liquid.ResetLiquidBiasCurrent();
+                liquid.simulateLiquid(readout_delay_steps, true);
+
+                //Leggo lo stato del liquido e lo aggiungo alla matrice degli stati
+                model.AddToXTesting(liquid.GetLiquidStates(liquid.current_step, 3));
+                prediction_vector = model.ComputePrediction(liquid.GetLiquidStates(liquid.current_step, 3));
+                WriteMatrixToFile(VectorToMatrix(prediction_vector, 64, 64), prediction_frame_path + i + prediction_frame_name, 0.5);
+                WriteMatrixToFile(VectorToMatrix(liquid.GetLiquidStates(liquid.current_step, 3), 10, 10), "../../../PyScript/Liquido/test/" + i + "liquid.txt", -1);
+
+                liquid.simulateLiquid(stim_interval_steps - stim_lenght_steps - readout_delay_steps, true);
+
+
+
+                Console.WriteLine("Simulato" + i);
+
+
+            }
+            Console.WriteLine(model.ComputeTestLoss());
 
         }
 
