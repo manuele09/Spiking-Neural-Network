@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace SLN
 {
     [Serializable]
-    internal class LSM
+    public class LSM
     {
         [Serializable]
         public struct Connection
@@ -40,7 +40,7 @@ namespace SLN
         public LinkedList<Connection>[] connectivityMatrix;
 
 
-        private Random rand;
+        public Random rand;
         public int current_step;
         public int input_size;
 

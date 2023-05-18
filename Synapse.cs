@@ -7,7 +7,7 @@ namespace SLN
     /// A synapse between two neurons
     /// </summary>
     [Serializable]
-    internal class Synapse
+    public class Synapse
     {
         #region Fields and properties
 

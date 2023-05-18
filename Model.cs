@@ -10,7 +10,7 @@ using Accord.Math;
 
 namespace SLN
 {
-    internal class Model
+    public class Model
     {
         public int input_size;
         public int output_size;

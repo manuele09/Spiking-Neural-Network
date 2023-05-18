@@ -44,22 +44,22 @@ namespace SLN
         public static void Main()
         {
 
-            String prediction_frame_path = "../../../PyScript/video_1/SimTestPred/";
+            String prediction_frame_path = "../../../PyScript/Prediction/";
             String prediction_frame_name = "_prediction.txt";
 
-            String train_frame_path = "../../../PyScript/video_1/train_target/";
+            String train_frame_path = "../../../PyScript/dati/video_6/train_target/";
             String train_frame_name = "_train_target.txt";
-            int n_train = 24;
+            int n_train = 23;
 
-            String test_frame_path = "../../../PyScript/video_1/test_target/";
+            String test_frame_path = "../../../PyScript/dati/video_6/test_target/";
             String test_frame_name = "_test_target.txt";
 
-            test_frame_path = train_frame_path;
-            test_frame_name = train_frame_name;
-            int n_test = 24;
+            // test_frame_path = train_frame_path;
+            //test_frame_name = train_frame_name;
+            int n_test = 23;
 
 
-            double stim_interval = 150; //ms
+            double stim_interval = 120; //ms
             double stim_lenght = 50; //ms
             double readout_delay = 30; //ms
 
@@ -80,40 +80,19 @@ namespace SLN
 
             LSM liquid = new LSM(n_exc, n_inh, n_rec, output_size);
 
-            Model model = new Model(input_size, output_size, n_train);
+            Model model = new Model(input_size, output_size, n_train * 5);
 
             #region Training
-            for (int i = 0; i < n_train; i++)
+            for (int t = 6; t <= 6; t++)
             {
-                Console.WriteLine("Simulando" + i);
 
-                //Leggo il frame da file, e determino l'input current
-                input_vector = ReadVectorFromFile(train_frame_path + i + train_frame_name);
-                if (i != 0)
-                    model.AddToYTraining(input_vector);
-
-                //Lo do in input come corrente
-                liquid.SetLiquidCurrent(input_vector, 2);
-
-                //simulo l'input
-                liquid.simulateLiquid(stim_lenght_steps, true);
-                liquid.ResetLiquidBiasCurrent();
-
-                //simulo per read_out_steps
-                liquid.simulateLiquid(readout_delay_steps, true);
-
-                //calcolo gli stati
-                if (i != (n_train - 1))
-                    model.AddToXTraining(liquid.GetLiquidStates(liquid.current_step, 3));
-                
-                //simulo i rimanenti steps
-                liquid.simulateLiquid(stim_interval_steps - stim_lenght_steps - readout_delay_steps, true);
+                training(liquid, model, stim_lenght_steps, readout_delay_steps, stim_interval_steps, "../../../PyScript/dati/video_" + t + "/train_target/", train_frame_name, n_train);
+                liquid.resetState();
             }
 
             //Calcolo i Pesi
             model.LearnW();
             Console.WriteLine(model.ComputeTrainLoss());
-            liquid.resetState();
 
             //BinarySerialization.WriteToBinaryFile("net.bin", liquid);
             #endregion
@@ -139,7 +118,7 @@ namespace SLN
 
                 //calcolo gli stati
                 prediction_vector = model.ComputePrediction(liquid.GetLiquidStates(liquid.current_step, 3));
-                WriteMatrixToFile(VectorToMatrix(prediction_vector, 64, 64), prediction_frame_path + i + prediction_frame_name, -0.5);
+                WriteMatrixToFile(VectorToMatrix(prediction_vector, 64, 64), prediction_frame_path + i + prediction_frame_name, 0.3);
 
                 //simulo i rimanenti steps
                 liquid.simulateLiquid(stim_interval_steps - stim_lenght_steps - readout_delay_steps, true);
@@ -151,6 +130,37 @@ namespace SLN
         }
 
 
+        public static void training(LSM liquid, Model model, int stim_lenght_steps, int readout_delay_steps, int stim_interval_steps, String train_frame_path, String train_frame_name, int n_samples)
+        {
+            double[] input_vector;
+            for (int i = 0; i < n_samples; i++)
+            {
+                Console.WriteLine("Simulando" + i);
+
+                //Leggo il frame da file, e determino l'input current
+                input_vector = ReadVectorFromFile(train_frame_path + i + train_frame_name);
+                if (i != 0)
+                    model.AddToYTraining(input_vector);
+
+                //Lo do in input come corrente
+                liquid.SetLiquidCurrent(input_vector, 2);
+
+                //simulo l'input
+                liquid.simulateLiquid(stim_lenght_steps, true);
+                liquid.ResetLiquidBiasCurrent();
+
+                //simulo per read_out_steps
+                liquid.simulateLiquid(readout_delay_steps, true);
+
+                //calcolo gli stati
+                if (i != (n_samples - 1))
+                    model.AddToXTraining(liquid.GetLiquidStates(liquid.current_step, 3));
+
+                //simulo i rimanenti steps
+                liquid.simulateLiquid(stim_interval_steps - stim_lenght_steps - readout_delay_steps, true);
+            }
+
+        }
 
         public static double[] MatrixToVector(double[,] matrix)
         {
