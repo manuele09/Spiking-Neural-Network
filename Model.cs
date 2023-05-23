@@ -33,6 +33,8 @@ namespace SLN
             this.output_size = output_size;
             this.n_samples_training = n_samples_training;
 
+            SetRandomW();
+
             X_training = new double[n_samples_training, input_size];
             Y_training = new double[n_samples_training, output_size];
 
@@ -106,7 +108,7 @@ namespace SLN
         public void SetRandomW()
         {
             Random random = new Random();
-            W = new double[input_size+1, output_size];
+            W = new double[input_size + 1, output_size];
             for (int i = 0; i < input_size + 1; i++)
                 for (int j = 0; j < output_size; j++)
                     W[i, j] = random.NextDouble();
@@ -130,7 +132,19 @@ namespace SLN
 
             return prediction_vec;
         }
-
+        public double ComputeLoss(double[] prediction, double[] target, bool Console_Output)
+        {
+            double error = 0;
+            double mean_value = 0;
+            for (int i = 0; i < prediction.Length; i++)
+            {
+                error += prediction[i] - target[i];
+                mean_value += prediction[i]; 
+            }
+            if (Console_Output)
+                Console.WriteLine("Loss: " + error / prediction.Length + "; Mean Value Ratio: " + error / mean_value + "; Mean Value: " + mean_value / prediction.Length);
+            return error / prediction.Length;
+        }
         public double ComputeTrainLoss()
         {
             double[,] prediction = AddBias(X_training).Dot(W);

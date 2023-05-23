@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace SLN
 {
@@ -19,9 +20,11 @@ namespace SLN
         public double B;
         public double C;
         public double D;
+        public double I_prev;
 
         private double _v;
-
+        private static int global_index = 0;
+        public int index;
         /// <summary>
         /// Membrane potential
         /// </summary>
@@ -91,13 +94,13 @@ namespace SLN
         /// </summary>
         public Neuron()
         {
-
             V = Constants.INITIAL_STATE_V_LIQUID;
             U = Constants.INITIAL_STATE_U_LIQUID;
 
             _spikeList = new SpikeList();
             _iBias = 0;
             _i = 0;
+            index = global_index++;
 
         }
 
@@ -133,7 +136,7 @@ namespace SLN
                 U = u;
             }
 
-
+            I_prev = I; //for logging purposes
             resetI();
 
             return spike;
@@ -201,11 +204,23 @@ namespace SLN
 
         internal double getState(int step, double tau)
         {
-            
+            double state = 0;
+
             //Console.WriteLine(step + ") Steps difference: " + (step - _spikeList.getLastSpike(step)) + "; Value: " + Math.Exp(-(step - _spikeList.getLastSpike(step)) / tau));
-            return Math.Exp(-(step - _spikeList.getLastSpike(step)) / tau);
-            //Console.WriteLine(step + ") Steps difference: " + (step - _spikeList.Last()) + "; Value: " + Math.Exp(-(step - _spikeList.Last()) / tau));
-           
+            for (int k = 0; k < _spikeList.NSpikes; k++)
+            {
+                //int tspk = Start._spikeList._spikelist[k];
+                int tspk = _spikeList.getSpikeAt(k);
+                if (tspk != -1 && tspk <= step) 
+                {
+                    double t = step - tspk;
+                    state += Math.Exp(-t / tau);
+                }
+            }
+           // Console.WriteLine("Value: " + state);
+            return state;
+            //return Math.Exp(-(step - _spikeList.getLastSpike(step)) / tau);
+
             //return Math.Exp(-(step - _spikeList.Last()) / tau);
 
         }

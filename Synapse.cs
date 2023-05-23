@@ -10,6 +10,7 @@ namespace SLN
     public class Synapse
     {
         #region Fields and properties
+        protected double current;
 
         /// <summary>
         /// The starting neuron of the synapse
@@ -48,19 +49,6 @@ namespace SLN
             set { _W = value; }
         }
 
-        /// <summary>
-        /// The weight of the synapse (without local excitation)
-        /// </summary>
-        protected double _Wsec;
-
-        /// <summary>
-        /// The weight of the synapse (without local excitation)
-        /// </summary>
-        internal double Wsec
-        {
-            get { return _Wsec; }
-        }
-
         private double _tau;
 
         /// <summary>
@@ -96,30 +84,15 @@ namespace SLN
         /// <param name="tau">The synapse time constant</param>
         /// <param name="delay">The synaptic delay (in steps of simulation)</param>
         /// <param name="gain">Gain in the calculation of the current</param>
-        internal Synapse(Neuron start, Neuron dest, double w, double wSec, double tau, int delay, double gain)
+        internal Synapse(Neuron start, Neuron dest, double w, double tau, int delay, double gain)
         {
             _start = start;
             _dest = dest;
             _W = w;
-            _Wsec = wSec;
             _tau = tau;
             _delay = delay;
             _gain = gain;
         }
-
-        /// <summary>
-        /// Constructor (with the same excitation weights specified)
-        /// </summary>
-        /// <param name="start">The starting neuron</param>
-        /// <param name="dest">The destination neuron</param>
-        /// <param name="w">The synaptic weight</param>
-        /// <param name="tau">The synapse time constant</param>
-        /// <param name="delay">The synaptic delay (in steps of simulation)</param>
-        /// <param name="gain">Gain in the calculation of the current</param>
-        internal Synapse(Neuron start, Neuron dest, double w, double tau, int delay, double gain)
-            : this(start, dest, w, w, tau, delay, gain)
-        { }
-
 
         /// <summary>
         /// Simulates the synapse
@@ -146,10 +119,16 @@ namespace SLN
             }
 
             I *= W;
-            Dest.updateI(I);
+            current = I;
+            //Dest.updateI(I);
             return 0;
         }
-        internal void resetState()
+        
+        internal virtual void update_current()
+        {
+            Dest.updateI(current);
+        }
+        internal virtual void resetState()
         {
             ;
         }

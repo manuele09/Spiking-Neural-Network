@@ -92,12 +92,22 @@ namespace SLN
 
             all_synapses = new LinkedList<Synapse>();
 
+            /*ConnectTsodyks(exc_neurons, exc_neurons, 2, 10 * 5, 2, 1, 813, 0.59);
+            ConnectTsodyks(exc_neurons, inh_neurons, 2, 10 * 25, 2, 1790, 399, 0.049);
+            ConnectTsodyks(inh_neurons, exc_neurons, 1, 10 * (-20), 2, 376, 45, 0.016);
+            ConnectTsodyks(inh_neurons, inh_neurons, 1, 10 * (-20), 2, 21, 706, 0.25);*/
+
             Connect(exc_neurons, exc_neurons, 2, 10 * 5);
             Connect(exc_neurons, inh_neurons, 2, 10 * 25);
             Connect(inh_neurons, exc_neurons, 1, 10 * (-20));
             Connect(inh_neurons, inh_neurons, 1, 10 * (-20));
 
-            ConnectInputToLiquid();
+            /*ConnectSTDP(exc_neurons, exc_neurons, 2, 10 * 5);
+            ConnectSTDP(exc_neurons, inh_neurons, 2, 10 * 25);
+            ConnectSTDP(inh_neurons, exc_neurons, 1, 10 * (-20));
+            ConnectSTDP(inh_neurons, inh_neurons, 1, 10 * (-20));*/
+
+            ConnectInputToLiquid(n_exc / 4);
         }
 
 
@@ -129,7 +139,55 @@ namespace SLN
             {
                 for (int j = 0; j < indegree; j++)
                 {
-                    Synapse syn = new Synapse(pre[rand.Next(pre.Length)], post[i], w, 0, tau, (int)(delay / Constants.INTEGRATION_STEP), 1);
+                    Synapse syn = new Synapse(pre[rand.Next(pre.Length)], post[i], w, tau, (int)(delay / Constants.INTEGRATION_STEP), 1);
+                    all_synapses.AddLast(syn);
+                }
+            }
+        }
+
+        public void ConnectSTDP(Neuron[] pre, Neuron[] post, int indegree, double J)
+        {
+            double delay = NextGaussian(10, 20, 3, 200);
+            double w, tau;
+            if (J >= 0)
+            {
+                w = NextGaussian(J, 0.7 * J, 0, 100000);
+                tau = 3;
+            }
+            else
+            {
+                w = NextGaussian(J, 0.7 * (-J), -100000, 0);
+                tau = 2;
+            }
+
+            for (int i = 0; i < post.Length; i++)
+            {
+                for (int j = 0; j < indegree; j++)
+                {
+                    Synapse syn = new SynapseSTDP(pre[rand.Next(pre.Length)], post[i], 0.1, 1, w, -5, 5, tau, (int)(delay / Constants.INTEGRATION_STEP));
+
+                    all_synapses.AddLast(syn);
+                }
+            }
+        }
+
+        public void ConnectTsodyks(Neuron[] pre, Neuron[] post, int indegree, double J, double tau_psc, double tau_fac, double tau_rec, double U)
+        {
+            double w, delay, u_0, x_0;
+            double f0 = 10;
+            u_0 = U / (1 - (1 - U) * Math.Exp(-1 / (f0 * tau_fac)));
+            x_0 = (1 - Math.Exp(-1 / (f0 * tau_rec))) / (1 - (1 - u_0) * Math.Exp(-1 / (f0 * tau_rec)));
+
+            for (int i = 0; i < post.Length; i++)
+            {
+                for (int j = 0; j < indegree; j++)
+                {
+                    if (J >= 0)
+                        w = NextGaussian(J, 0.7 * J, 0, 100000);
+                    else
+                        w = NextGaussian(J, 0.7 * (-J), -100000, 0);
+                    delay = NextGaussian(10, 20, 3, 200);
+                    Tsodyks syn = new Tsodyks(pre[rand.Next(pre.Length)], post[i], w, (int)(delay / Constants.INTEGRATION_STEP), tau_psc, tau_fac, tau_rec, U, x_0, u_0);
                     all_synapses.AddLast(syn);
                 }
             }
@@ -153,6 +211,10 @@ namespace SLN
                 {
                     syn.simulate(step);
                 }
+                foreach (Synapse syn in all_synapses)
+                {
+                    syn.update_current();
+                }
             }
             else
             {
@@ -165,6 +227,50 @@ namespace SLN
                 {
                     syn.simulate(step);
                 });
+                foreach (Synapse syn in all_synapses)
+                {
+                    syn.update_current();
+                }
+
+            }
+
+
+        }
+        internal void simulateLiquidStep(int step, bool parallel, StateLogger logger)
+        {
+            if (!parallel)
+            {
+                for (int i = 0; i < all_neurons.Length; i++)
+                {
+                    all_neurons[i].simulate(step);
+                    logger.logNeuron(step, all_neurons[i]);
+                }
+
+                foreach (Synapse syn in all_synapses)
+                {
+                    syn.simulate(step);
+                }
+                foreach (Synapse syn in all_synapses)
+                {
+                    syn.update_current();
+                }
+            }
+            else
+            {
+                for (int i = 0; i < all_neurons.Length; i++)
+                {
+                    all_neurons[i].simulate(step);
+                    logger.logNeuron(step, all_neurons[i]);
+                }
+
+                Parallel.ForEach(all_synapses, syn =>
+                {
+                    syn.simulate(step);
+                });
+                foreach (Synapse syn in all_synapses)
+                {
+                    syn.update_current();
+                }
 
             }
 
@@ -178,19 +284,20 @@ namespace SLN
         /// <param name="parallel">Flag indicating whether to use parallel computation</param>
         public void simulateLiquid(int nsteps, bool parallel)
         {
-            parallel = false;
             for (int step = 0; step < nsteps; step++)
-            {
                 simulateLiquidStep(current_step++, parallel);
-                // if (step > 10)
-                // Console.WriteLine(all_neurons[0]._spikeList.Last());
-            }
+        }
+
+        public void simulateLiquid(int nsteps, bool parallel, StateLogger logger)
+        {
+            for (int step = 0; step < nsteps; step++)
+                simulateLiquidStep(current_step++, parallel, logger);
         }
 
         /// <summary>
         /// Connects the input layer to the liquid (LSM) with Gaussian weights.
         /// </summary>
-        public void ConnectInputToLiquid()
+        public void ConnectInputToLiquid(int out_degree)
         {
             //provare a connettere ad un numero minore di neuroni
             double weight;
@@ -198,10 +305,10 @@ namespace SLN
             {
                 connectivityMatrix[i] = new LinkedList<Connection>();
 
-                for (int e = 0; e < n_exc; e++)
+                for (int d = 0; d < out_degree; d++)
                 {
-                    weight = NextGaussian(2.65, 0.025, 0, 14.9);
-                    connectivityMatrix[i].AddLast(new Connection(e, weight));
+                    weight = 125 + rand.NextDouble() * (375 - 125); //uniform: low = 125, high = 375.
+                    connectivityMatrix[i].AddLast(new Connection(rand.Next(n_exc), weight));
                 }
 
             }
@@ -217,7 +324,7 @@ namespace SLN
             this.ResetLiquidBiasCurrent();
             for (int i = 0; i < input_current.Length; i++)
                 foreach (Connection conn in connectivityMatrix[i])
-                    exc_neurons[conn.index].IBias += input_current[i] * conn.w;  //*3
+                    exc_neurons[conn.index].IBias += input_current[i] * conn.w * gain;
             return;
         }
 

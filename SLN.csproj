@@ -134,12 +134,16 @@
     <Compile Include="LSM.cs" />
     <Compile Include="Model.cs" />
     <Compile Include="Neuron.cs" />
+    <Compile Include="NeuronLoggerStruct.cs" />
     <Compile Include="Program2.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SpikeList.cs" />
     <Compile Include="SpikeListOld.cs" />
     <Compile Include="SpikingNeuron.cs" />
+    <Compile Include="StateLogger.cs" />
+    <Compile Include="SynapseSTDP.cs" />
+    <Compile Include="Tsodyks.cs" />
     <Compile Include="Synapse.cs" />
   </ItemGroup>
   <ItemGroup>
