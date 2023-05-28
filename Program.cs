@@ -109,10 +109,10 @@ namespace SLN
             List<string> str_prima_sequenza = new List<string>();
             List<int> prima_targets = new List<int>();
 
-            prima_sequenza.Add(BlueRectangleDx);
-            prima_sequenza.Add(RedRectangleSx);
-            prima_sequenza.Add(BlueCircleSx);
-            prima_sequenza.Add(RedCircleSxEnd3);
+            prima_sequenza.Add(new NetworkInput(3, 0, -1));
+            prima_sequenza.Add(new NetworkInput(0, 1, -1));
+            prima_sequenza.Add(new NetworkInput(4, 1, -1));
+            prima_sequenza.Add(new NetworkInput(1, 1, 3));
 
             str_prima_sequenza.Add("Blue Rectangle Dx");
             str_prima_sequenza.Add("Red Rectangle Sx");

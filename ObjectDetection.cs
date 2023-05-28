@@ -174,6 +174,7 @@ namespace SLN
             //reward level da 1 a 3 (compresi).
 
             //valori più piccoli di quelli elencati implicano zero reward.
+            Console.WriteLine("Colore: " + features[0] + "; Forma: " + features[1]);
 
             return new NetworkInput(features[0], features[1], -1, -1, motor, reward_level);
 

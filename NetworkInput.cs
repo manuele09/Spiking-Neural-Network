@@ -8,6 +8,8 @@ namespace SLN
     [Serializable]
     public class NetworkInput
     {
+        public int id;
+
         private int _color;
 
         /// <summary>
@@ -191,7 +193,27 @@ namespace SLN
             else
                 _motor = -1;
 
+            _colorValue = Constants.DEFAULT_CURRENT_LIQUID;
+
+            _sizeValue = Constants.DEFAULT_CURRENT_LIQUID;
+
+            _hdistrValue = Constants.DEFAULT_CURRENT_LIQUID;
+
+            _vdistrValue = Constants.DEFAULT_CURRENT_LIQUID;
+
         }
+
+
+
+        public NetworkInput(int id, int motor, int end)
+                : this(ObjectDetection.FromIdToFeatures(id)[0],
+           ObjectDetection.FromIdToFeatures(id)[1],
+           -1, -1, motor, end)
+        {
+            this.id = id;
+        }
+
+
 
         /// <summary>
         /// Constructor (reward off by default)
