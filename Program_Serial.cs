@@ -50,11 +50,7 @@ namespace SLN
 
             ObjectDetection detector = new ObjectDetection(script_path, input_path, center_path, distance_path);
 
-            float distance;
-            float[] centers = new float[4];
-            int[] objects;
             float dist_tresh = 100;
-            float center;
 
             int[] lista_vincente = new int[4] { 3, 0, 1, 4 };
             int[] lista_motore = new int[4] { 0, 1, 0, 1 };
@@ -145,31 +141,7 @@ namespace SLN
                 }
 
                 //fermati
-                /*Console.WriteLine("Mi fermo");
-                try
-                {
-                    serialPort.WriteLine("h");
-
-                    serialPort.BaseStream.Flush();
-
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("write error: " + ex.Message);
-                    Environment.Exit(1);
-                }*/
-                try
-                {
-                    serialPort.WriteLine("h");
-
-                    serialPort.BaseStream.Flush();
-
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("write error: " + ex.Message);
-                    Environment.Exit(1);
-                }
+                serial.Stop(true);
                 counter++;
             }
 

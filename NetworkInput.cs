@@ -7,56 +7,56 @@ namespace SLN
     /// </summary>
     [Serializable]
     public class NetworkInput
-	{
-		private int _color;
+    {
+        private int _color;
 
-		/// <summary>
-		/// The <b>COLOR</b> feature
-		/// </summary>
-		internal int COLOR
-		{
-			get { return _color; }
-		}
+        /// <summary>
+        /// The <b>COLOR</b> feature
+        /// </summary>
+        internal int COLOR
+        {
+            get { return _color; }
+        }
 
-		private int _size;
+        private int _size;
 
-		/// <summary>
-		/// The <b>SIZE</b> feature
-		/// </summary>
-		internal int SIZE
-		{
-			get { return _size; }
-		}
+        /// <summary>
+        /// The <b>SIZE</b> feature
+        /// </summary>
+        internal int SIZE
+        {
+            get { return _size; }
+        }
 
-		private int _hdistr;
+        private int _hdistr;
 
-		/// <summary>
-		/// The <b>HORIZONTAL DISTRIBUTEDNESS</b> feature
-		/// </summary>
-		internal int HDISTR
-		{
-			get { return _hdistr; }
-		}
+        /// <summary>
+        /// The <b>HORIZONTAL DISTRIBUTEDNESS</b> feature
+        /// </summary>
+        internal int HDISTR
+        {
+            get { return _hdistr; }
+        }
 
-		private int _vdistr;
+        private int _vdistr;
 
-		/// <summary>
-		/// The <b>VERTICAL DISTRIBUTEDNESS</b> feature
-		/// </summary>
-		internal int VDISTR
-		{
-			get { return _vdistr; }
-		}
+        /// <summary>
+        /// The <b>VERTICAL DISTRIBUTEDNESS</b> feature
+        /// </summary>
+        internal int VDISTR
+        {
+            get { return _vdistr; }
+        }
 
-		private bool _reward;
+        private bool _reward;
 
-		/// <summary>
-		/// The reward condition
-		/// </summary>
-		internal bool REWARD
-		{
-			get { return _reward; }
-		}
+        /// <summary>
+        /// The reward condition
+        /// </summary>
+        internal bool REWARD
+        {
+            get { return _reward; }
+        }
 
         private bool _end;
 
@@ -124,23 +124,23 @@ namespace SLN
             get { return _motor; }
         }
 
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="color">The value of the <b>COLOR</b> feature</param>
-		/// <param name="size">The value of the <b>SIZE</b> feature</param>
-		/// <param name="hdistr">The value of the <b>HORIZONTAL DISTRIBUTEDNESS</b> feature</param>
-		/// <param name="vdistr">The value of the <b>VERTICAL DISTRIBUTEDNESS</b> feature</param>
-		/// <param name="reward"><i>true</i> if there's a reward associated to this input, <i>false</i> otherwise</param>
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="color">The value of the <b>COLOR</b> feature</param>
+        /// <param name="size">The value of the <b>SIZE</b> feature</param>
+        /// <param name="hdistr">The value of the <b>HORIZONTAL DISTRIBUTEDNESS</b> feature</param>
+        /// <param name="vdistr">The value of the <b>VERTICAL DISTRIBUTEDNESS</b> feature</param>
+        /// <param name="reward"><i>true</i> if there's a reward associated to this input, <i>false</i> otherwise</param>
         /// <param name="end"><i>true</i> if this is the end sequence input <i>false</i> otherwise</param>
         /// <param name="level"><i>Positive number, not null</i> The level of the reward </param>
         public NetworkInput(int color, int size, int hdistr, int vdistr, bool reward, bool end, int level, double vcolor, double vsize, double vhdistr, double vvdistr, int motor)
-		{
-			_color = color;
-			_size = size;
-			_hdistr = hdistr;
-			_vdistr = vdistr;
-			_reward = reward;
+        {
+            _color = color;
+            _size = size;
+            _hdistr = hdistr;
+            _vdistr = vdistr;
+            _reward = reward;
             _end = end;
             _motor = motor;
             if (level < 1)
@@ -169,18 +169,40 @@ namespace SLN
                 _vdistrValue = Constants.DEFAULT_CURRENT_LIQUID + (vvdistr / 100) * Constants.DEFAULT_CURRENT_LIQUID;
 
 
-		}
+        }
+        //livello end reward minimo = 1
+        public NetworkInput(int color, int size, int hdistr, int vdistr, int motor, int end)
+        {
+            _color = color;
+            _size = size;
+            _hdistr = hdistr;
+            _vdistr = vdistr;
 
-		/// <summary>
-		/// Constructor (reward off by default)
-		/// </summary>
-		/// <param name="color">The value of the <b>COLOR</b> feature</param>
-		/// <param name="size">The value of the <b>SIZE</b> feature</param>
-		/// <param name="hdistr">The value of the <b>HORIZONTAL DISTRIBUTEDNESS</b> feature</param>
-		/// <param name="vdistr">The value of the <b>VERTICAL DISTRIBUTEDNESS</b> feature</param>
-		public NetworkInput(int color, int size, int hdistr, int vdistr)
-            : this(color, size, hdistr, vdistr, false, false, 1, 0,0,0,0,-1)
-		{ }
+            if (end >= 1)
+                _end = true;
+            else
+                _end = false;
+
+
+            _rewardLevel = end;
+
+            if (motor >= 0)
+                _motor = motor;
+            else
+                _motor = -1;
+
+        }
+
+        /// <summary>
+        /// Constructor (reward off by default)
+        /// </summary>
+        /// <param name="color">The value of the <b>COLOR</b> feature</param>
+        /// <param name="size">The value of the <b>SIZE</b> feature</param>
+        /// <param name="hdistr">The value of the <b>HORIZONTAL DISTRIBUTEDNESS</b> feature</param>
+        /// <param name="vdistr">The value of the <b>VERTICAL DISTRIBUTEDNESS</b> feature</param>
+        public NetworkInput(int color, int size, int hdistr, int vdistr)
+            : this(color, size, hdistr, vdistr, false, false, 1, 0, 0, 0, 0, -1)
+        { }
 
 
         /// <summary>
@@ -193,7 +215,7 @@ namespace SLN
         /// <param name="reward"><i>true</i> if there's a reward associated to this input, <i>false</i> otherwise</param>
         /// <param name="end"><i>true</i> if this is the end sequence input <i>false</i> otherwise</param>
         public NetworkInput(int color, int size, int hdistr, int vdistr, bool reward, bool end)
-            : this(color, size, hdistr, vdistr, reward, end, 1,0,0,0,0,-1)
+            : this(color, size, hdistr, vdistr, reward, end, 1, 0, 0, 0, 0, -1)
         { }
 
         /// <summary>
@@ -219,10 +241,10 @@ namespace SLN
         /// <param name="reward"><i>true</i> if there's a reward associated to this input, <i>false</i> otherwise</param>
         /// <param name="end"><i>true</i> if this is the end sequence input <i>false</i> otherwise</param>
         public NetworkInput(int color, int size, int hdistr, int vdistr, bool reward, bool end, int level)
-            : this(color, size, hdistr, vdistr, reward, end, level, 0,0,0,0,-1)
+            : this(color, size, hdistr, vdistr, reward, end, level, 0, 0, 0, 0, -1)
         { }
 
-        public NetworkInput(int color, int size, int hdistr, int vdistr,int motor, bool reward, bool end, int level)
+        public NetworkInput(int color, int size, int hdistr, int vdistr, int motor, bool reward, bool end, int level)
             : this(color, size, hdistr, vdistr, reward, end, level, 0, 0, 0, 0, motor)
         { }
         /// <summary>
@@ -248,17 +270,17 @@ namespace SLN
         /// <param name="reward"><i>true</i> if there's a reward associated to this input, <i>false</i> otherwise</param>
         /// <param name="end"><i>true</i> if this is the end sequence input <i>false</i> otherwise</param>
         public NetworkInput(int color, int size, int hdistr, int vdistr, bool reward, bool end, double vcolor, double vsize, double vhdistr, double vvdistr)
-            : this(color, size, hdistr, vdistr, reward, end, 1, vcolor, vsize, vhdistr, vvdistr,-1)
+            : this(color, size, hdistr, vdistr, reward, end, 1, vcolor, vsize, vhdistr, vvdistr, -1)
         { }
 
-		/// <summary>
-		/// Returns a string representation of the object
-		/// </summary>
-		/// <returns>A space-separated list of input values for each feature plus the
-		/// value of reward enclosed in braces</returns>
-		public override string ToString()
-		{
-			return _color + " " + _size + " " + _hdistr + " " + _vdistr + " (" + _reward + ") "+" "+_end;
-		}
-	}
+        /// <summary>
+        /// Returns a string representation of the object
+        /// </summary>
+        /// <returns>A space-separated list of input values for each feature plus the
+        /// value of reward enclosed in braces</returns>
+        public override string ToString()
+        {
+            return _color + " " + _size + " " + _hdistr + " " + _vdistr + " (" + _reward + ") " + " " + _end;
+        }
+    }
 }

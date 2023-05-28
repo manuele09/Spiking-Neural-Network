@@ -21,7 +21,7 @@ namespace SLN
         public float[] distances = new float[2]; //di default massimo 2 input
         public int n_inputs;
 
-        public ObjectDetection(string script_path,  string input_path, string center_path, string distance_path)
+        public ObjectDetection(string script_path, string input_path, string center_path, string distance_path)
         {
             ResetVars();
             this.script_path = script_path;
@@ -62,12 +62,12 @@ namespace SLN
             ResetVars();
 
             Run_Python(false);
-            
+
             StreamReader dataStream = new StreamReader(input_path);
 
-            for (int i = 0; ((datasample = dataStream.ReadLine()) != null)  && i < 2; i++)
-                    if (int.TryParse(datasample, out number))
-                        inputs[n_inputs++] = number;
+            for (int i = 0; ((datasample = dataStream.ReadLine()) != null) && i < 2; i++)
+                if (int.TryParse(datasample, out number))
+                    inputs[n_inputs++] = number;
 
             dataStream.Close();
 
@@ -78,7 +78,7 @@ namespace SLN
 
             for (int i = 0; ((datasample = dataStream.ReadLine()) != null) && i < 2; i++)
                 if (float.TryParse(datasample, out number2))
-                        centers[i] = number2;
+                    centers[i] = number2;
 
             dataStream.Close();
 
@@ -91,7 +91,7 @@ namespace SLN
                 distances[i] = number2;
 
         }
-        
+
         public void ResetVars()
         {
             n_inputs = 0;
@@ -105,34 +105,82 @@ namespace SLN
             distances[0] = -1;
             distances[1] = -1;
         }
-        public static NetworkInput ConvertFromId(int id)
+        public static int[] FromIdToFeatures(int id)
         {
+            int[] features = new int[2]; //colore e forma
+            features[0] = -1;
+            features[1] = -1;
+
             if (id == 0) //rettangolo rosso
-                return new NetworkInput(1, 1, -1, -1);
+            {
+                features[0] = 1;
+                features[1] = 1;
+            }
             if (id == 1) //cerchio rosso
-                return new NetworkInput(1, 3, -1, -1);
+            {
+                features[0] = 1;
+                features[1] = 3;
+            }
             if (id == 2) //triangolo rosso
-                return new NetworkInput(1, 2, -1, -1);
+            {
+                features[0] = 1;
+                features[1] = 2;
+            }
 
             if (id == 3) //rettangolo blu
-                return new NetworkInput(2, 1, -1, -1);
+            {
+                features[0] = 2;
+                features[1] = 1;
+            }
             if (id == 4) //cerchio blu
-                return new NetworkInput(2, 3, -1, -1);
+            {
+                features[0] = 2;
+                features[1] = 3;
+            }
             if (id == 5) //triangolo blu
-                return new NetworkInput(2, 2, -1, -1);
+            {
+                features[0] = 2;
+                features[1] = 2;
+            }
 
             if (id == 6) //rettangolo giallo
-                return new NetworkInput(0, 1, -1, -1);
+            {
+                features[0] = 0;
+                features[1] = 1;
+            }
             if (id == 7) //cerchio giallo
-                return new NetworkInput(0, 3, -1, -1);
+            {
+                features[0] = 0;
+                features[1] = 3;
+            }
             if (id == 8) //triangolo giallo
-                return new NetworkInput(0, 2, -1, -1);
+            {
+                features[0] = 0;
+                features[1] = 2;
+            }
 
-            if (id == -1) //null
-                return new NetworkInput(-1, -1, -1, -1);
-            return null;
+            return features;
 
         }
+
+        public static NetworkInput GenerateInput(int id, int motor, int reward_level)
+        {
+            int[] features = FromIdToFeatures(id);
+
+            //prima feature: colore;
+            //seconda feature: forma;
+
+            //motor 0 o 1;
+            //reward level da 1 a 3 (compresi).
+
+            //valori più piccoli di quelli elencati implicano zero reward.
+
+            return new NetworkInput(features[0], features[1], -1, -1, motor, reward_level);
+
+
+
+        }
+
     }
 
 
