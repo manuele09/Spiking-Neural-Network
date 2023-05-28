@@ -25,6 +25,10 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Accord.Statistics.Models;
 using System.Windows.Input;
+using System.Runtime.ConstrainedExecution;
+using Accord.Math;
+using System.Globalization;
+using System.IO.Ports;
 
 namespace SLN
 {
@@ -42,76 +46,9 @@ namespace SLN
 
             String pathPc = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             String net_path = pathPc + @"\Saved_Networks\net-";
-            #region ABC
-            NetworkInput inputAReward = new NetworkInput(1, 1, 1, 1, true, false);
-            NetworkInput inputANoRewardRight = new NetworkInput(1, 1, 1, 1, 0, false);
-            NetworkInput inputANoRewardRightEnd = new NetworkInput(1, 1, 1, 1, 0, true, 1);
-            NetworkInput inputANoRewardLeft = new NetworkInput(1, 1, 1, 1, 1, false);
-            NetworkInput inputANoRewardLeftEnd = new NetworkInput(1, 1, 1, 1, 1, true, 1);
-            NetworkInput inputANoRewardLeftEnd3 = new NetworkInput(1, 1, 1, 1, 1, true, 3);
-            NetworkInput inputANoReward = new NetworkInput(1, 1, 1, 1, false, false);
-            NetworkInput inputANoRewardInc = new NetworkInput(1, 1, -1, 1, false, false);
-            NetworkInput inputANoRewardEnd = new NetworkInput(1, 1, 1, 1, false, true);
-            NetworkInput inputANoRewardEnd2 = new NetworkInput(1, 1, 1, 1, false, true, 2);
-            NetworkInput inputANoRewardEnd3 = new NetworkInput(1, 1, 1, 1, false, true, 3);
-            NetworkInput inputBReward = new NetworkInput(2, 2, 2, 2, true, false);
-            NetworkInput inputBNoReward = new NetworkInput(0, 1, 2, 3, false, false);
-            NetworkInput inputBNoRewardInc = new NetworkInput(0, 1, -1, 3, false, false);
-            NetworkInput inputBNoRewardRight = new NetworkInput(0, 1, 2, 3, 0, false);
-            NetworkInput inputBNoRewardEnd = new NetworkInput(0, 1, 2, 3, false, true);
-            NetworkInput inputBNoRewardEnd2 = new NetworkInput(0, 1, 2, 3, false, true, 2);
-            NetworkInput inputBNoRewardEnd3 = new NetworkInput(0, 1, 2, 3, false, true, 3);
-            NetworkInput inputBNoRewardLeftEnd3 = new NetworkInput(0, 1, 2, 3, 1, true, 3);
-            NetworkInput inputBRewardEnd = new NetworkInput(2, 2, 2, 2, true, true);
-            NetworkInput inputCNoReward = new NetworkInput(3, 2, 1, 0, false, false);
-            NetworkInput inputCNoRewardRightEnd = new NetworkInput(3, 2, 1, 0, 0, true);
-            NetworkInput inputCNoRewardLeftEnd = new NetworkInput(3, 2, 1, 0, 1, true);
-            NetworkInput inputCNoRewardEnd = new NetworkInput(3, 2, 1, 0, false, true);
-            NetworkInput inputCNoRewardEndInc = new NetworkInput(3, -1, 1, 0, false, true);
-            NetworkInput inputCNoRewardEnd2 = new NetworkInput(3, 2, 1, 0, false, true, 2);
-            NetworkInput inputCNoRewardEnd3 = new NetworkInput(3, 2, 1, 0, false, true, 3);
-            NetworkInput inputCReward = new NetworkInput(3, 3, 3, 3, true, false);
-            NetworkInput inputCNoRewardRight = new NetworkInput(3, 2, 1, 0, 0, false);
-            NetworkInput inputDNoReward = new NetworkInput(2, 2, 0, 1, false, false);
-            NetworkInput inputDNoRewardEnd = new NetworkInput(2, 2, 0, 1, false, true);
+            int n_learnings = 1;
+
             NetworkInput inputNull = new NetworkInput(-1, -1, -1, -1);
-            NetworkInput inputNullRewardLevel1 = new NetworkInput(-1, -1, -1, -1, false, true, 1);
-            NetworkInput inputNullRewardLevel2 = new NetworkInput(-1, -1, -1, -1, false, true, 2);
-            NetworkInput inputNullRewardLevel3 = new NetworkInput(-1, -1, -1, -1, false, true, 3);
-            NetworkInput inputNullRewardSeq = new NetworkInput(-1, -1, -1, -1, false, true);
-            NetworkInput inputNNoReward = new NetworkInput(1, 1, 1, -1, false, false);
-
-            NetworkInput inputANoRewardIncomplete = new NetworkInput(1, 1, 1, -1, false, false);
-
-            NetworkInput inputANoRewardLowColor1 = new NetworkInput(1, 1, 1, 1, false, false, -2.85, 0, 0, 0);
-            NetworkInput inputANoRewardLowColor2 = new NetworkInput(1, 1, 1, 1, false, false, -5.71, 0, 0, 0);
-            NetworkInput inputANoRewardLowVdistr1 = new NetworkInput(1, 1, 1, 1, false, false, 0, 0, 0, -10);
-            NetworkInput inputANoRewardLowVdistr2 = new NetworkInput(1, 1, 1, 1, false, false, 0, 0, 0, -20);
-            NetworkInput inputANoRewardLowVdistr3 = new NetworkInput(1, 1, 1, 1, false, false, 0, 0, 0, -30);
-            NetworkInput inputANoRewardLowVdistr4 = new NetworkInput(1, 1, 1, 1, false, false, 0, 0, 0, -40);
-            NetworkInput inputANoRewardLowVdistr5 = new NetworkInput(1, 1, 1, 1, false, false, 0, 0, 0, -50);
-            NetworkInput inputANoRewardLowVdistr6 = new NetworkInput(1, 1, 1, 1, false, false, 0, 0, 0, -60);
-            NetworkInput inputANoRewardLowVdistr7 = new NetworkInput(1, 1, 1, 1, false, false, 0, 0, 0, -70);
-            NetworkInput inputANoRewardLowVdistr8 = new NetworkInput(1, 1, 1, 1, false, false, 0, 0, 0, -80);
-            NetworkInput inputANoRewardLowVdistr9 = new NetworkInput(1, 1, 1, 1, false, false, 0, 0, 0, -90);
-            NetworkInput inputANoRewardLowVdistr10 = new NetworkInput(1, 1, 1, 1, false, false, 0, 0, 0, -100);
-            NetworkInput inputANoRewardHighVdistr1 = new NetworkInput(1, 1, 1, 1, false, false, 0, 0, 0, 50);
-            NetworkInput inputANoRewardHighVdistr2 = new NetworkInput(1, 1, 1, 1, false, false, 0, 0, 0, 60);
-
-            NetworkInput inputBNoRewardLowColor1 = new NetworkInput(2, 2, 2, 2, false, false, -2.85, 0, 0, 0);
-            NetworkInput inputBNoRewardLowColor2 = new NetworkInput(2, 2, 2, 2, false, false, -5.71, 0, 0, 0);
-            NetworkInput inputBNoRewardLowVdistr1 = new NetworkInput(2, 2, 2, 2, false, false, -5, -5, -5, -5);
-            NetworkInput inputBNoRewardLowVdistr2 = new NetworkInput(2, 2, 2, 2, false, false, 0, 0, 0, -6);
-            NetworkInput inputBNoRewardHighVdistr1 = new NetworkInput(2, 2, 2, 2, false, false, 1, 1, 1, 1);
-            NetworkInput inputBNoRewardHighVdistr2 = new NetworkInput(2, 2, 2, 2, false, false, 0, 0, 0, 2);
-
-            NetworkInput inputDNoRewardLowColor1 = new NetworkInput(0, 0, 0, 0, false, false, -2.85, 0, 0, 0);
-            NetworkInput inputDNoRewardLowColor2 = new NetworkInput(0, 0, 0, 0, false, false, -5.71, 0, 0, 0);
-            NetworkInput inputDNoRewardLowVdistr1 = new NetworkInput(0, 0, 0, 0, false, false, 0, 0, 0, -2);
-            NetworkInput inputDNoRewardLowVdistr2 = new NetworkInput(0, 0, 0, 0, false, false, 0, 0, 0, -3);
-            NetworkInput inputDNoRewardHighVdistr1 = new NetworkInput(0, 0, 0, 0, false, false, 0, 0, 0, 3);
-            NetworkInput inputDNoRewardHighVdistr2 = new NetworkInput(0, 0, 0, 0, false, false, 0, 0, 0, 4);
-            #endregion
 
             #region Figure Input
             NetworkInput YellowSquare = new NetworkInput(0, 0, -1, -1, false, false);
@@ -162,10 +99,10 @@ namespace SLN
             #endregion
 
             Network net = Network.generateNetwork();
-           // net = BinarySerialization.ReadFromBinaryFile<Network>(net_path + 0 + ".bin");
+            // net = BinarySerialization.ReadFromBinaryFile<Network>(net_path + 0 + ".bin");
+
 
             #region learning
-            System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Learning *** *** *** ****** *** *** ****** *** ***");
 
             #region prima_sequenza
             List<NetworkInput> prima_sequenza = new List<NetworkInput>();
@@ -229,8 +166,10 @@ namespace SLN
             quarta_targets.Add(4);
             quarta_targets.Add(1);
             #endregion
-            for (int l = 0; l < 2; l++)
+
+            for (int l = 0; l < n_learnings; l++)
             {
+                System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Learning " + (l + 1) + " *** *** *** ****** *** *** ****** *** ***");
                 net.current_learning++;
                 SimulateInputs(net, prima_sequenza, str_prima_sequenza, prima_targets, 1);
                 SimulateInputs(net, seconda_sequenza, str_seconda_sequenza, seconda_targets, 1);
@@ -238,68 +177,193 @@ namespace SLN
                 SimulateInputs(net, quarta_sequenza, str_quarta_sequenza, quarta_targets, 1);
                 BinarySerialization.WriteToBinaryFile<Network>(net_path + net.current_learning + ".bin", net);
             }
+
             #endregion
 
-            #region testing
+            #region input imagination
 
             List<NetworkInput> imagination = new List<NetworkInput>();
             List<string> str_imagination = new List<string>();
 
             imagination.Add(BlueRectangle);
-            imagination.Add(RedRectangle);
-            imagination.Add(BlueCircle);
-            imagination.Add(RedCircle);
             imagination.Add(YellowCircle);
-            imagination.Add(YellowRectangle);
-            
+
             str_imagination.Add("Blue Rectangle");
-            str_imagination.Add("Red Rectangle");
-            str_imagination.Add("Blue Circle");
-            str_imagination.Add("Red Circle");
             str_imagination.Add("Yellow Circle");
-            str_imagination.Add("Yellow Rectangle");
 
-
-
-            System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Testing *** *** *** ****** *** *** ****** *** ***");
-            //net = BinarySerialization.ReadFromBinaryFile<Network>(net_path + 4 + ".bin");
-
+            #endregion
 
             #region sequenza_test
             List<NetworkInput> test_sequenza = new List<NetworkInput>();
             List<string> str_test_sequenza = new List<string>();
-            
+
             test_sequenza.Add(BlueRectangle);
             test_sequenza.Add(inputNull);
             test_sequenza.Add(inputNull);
             test_sequenza.Add(inputNull);
             test_sequenza.Add(inputNull);
-            
+
             str_test_sequenza.Add("Blue Rectangle");
             str_test_sequenza.Add("Input Null");
             str_test_sequenza.Add("Input Null");
             str_test_sequenza.Add("Input Null");
             str_test_sequenza.Add("Input Null");
-            
+
             #endregion
+
+            System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Testing *** *** *** ****** *** *** ****** *** ***");
+            //net = BinarySerialization.ReadFromBinaryFile<Network>(net_path + 1 + ".bin");
+            net = BinarySerialization.ReadFromBinaryFile<Network>(net_path + "prime_due.bin");
+
 
 
             //SimulateInputs(net, test_sequenza, str_test_sequenza, null, 0);
             SimulateInputsImagination(net, imagination, str_imagination, null, 0);
 
-         
+            float distance;
+            float[] centers = new float[4];
+            int[] objects;
+            float dist_tresh = 100;
+            float center;
 
-            #endregion
+            int[] lista_vincente = new int[4] {0, 1, 2, 3};
+            int[] lista_motore = new int[4] {0, 1, 1, 1};
+
+            int counter = 0;
+            int timer = 700; //millisecondi
+
+            bool esci;
+
+            string[] serialPorts = SerialPort.GetPortNames();
+            foreach (string p in serialPorts)
+                Console.WriteLine(p);
+            SerialPort serialPort = new SerialPort("COM3", 1000000, Parity.None, 8, StopBits.One);
+            try
+            {
+                serialPort.Open();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("open() error: " + ex.Message);
+                Environment.Exit(1);
+            }
+            while (true)
+            {
+                //vai avanti
+                try
+                {
+                    serialPort.WriteLine("w");
+                    serialPort.BaseStream.Flush();
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("write error: " + ex.Message);
+                    Environment.Exit(1);
+                }
+
+                //cammino finchè sono vicino all'item "counter"
+                esci = false;
+                while (true)
+                {
+                    Run_cmd();
+                    distance = Get_Distance();
+                    objects = Get_Features();
+                    foreach (int o in objects)
+                    {
+                        if (o == lista_vincente[counter] && distance < dist_tresh)
+                        {
+                            esci = true;
+                            break;
+                        }
+                    }
+                    if (esci)
+                        break;
+                    Thread.Sleep(timer);
+                }
+
+                //fermati
+                try
+                {
+                    serialPort.WriteLine("h");
+                    serialPort.BaseStream.Flush();
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("write error: " + ex.Message);
+                    Environment.Exit(1);
+                }
+
+                if (counter == (lista_vincente.Length - 1)) //vedere condizione contorno
+                {
+                    serialPort.Close();
+                    Environment.Exit(1);
+                }
+
+                //gira a lista_motore[counter]
+                try
+                {
+                    if (lista_motore[counter] == 0)
+                        serialPort.WriteLine("d");
+                    else
+                        serialPort.WriteLine("a");
+                    serialPort.BaseStream.Flush();
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("write error: " + ex.Message);
+                    Environment.Exit(1);
+                }
+
+                //giro nella direzione lista_motore[counter]
+                //finchè l'oggetto non è centrato
+                esci = false;
+                while (true)
+                {
+                    Run_cmd();
+                    objects = Get_Features();
+                    foreach (int o in objects)
+                    {
+                        center = centers[objects.IndexOf(o)];
+                        if (o == lista_vincente[counter + 1] && center > (320 - 30) && center < (320 + 30))
+                        {
+                            esci = true;
+                            break;
+                        }
+                    }
+                    if (esci)
+                        break;
+                    Thread.Sleep(timer);
+                }
+
+                //fermati
+                try
+                {
+                    serialPort.WriteLine("h");
+
+                    serialPort.BaseStream.Flush();
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("write error: " + ex.Message);
+                    Environment.Exit(1);
+                }
+                counter++;
+            }
+
+
 
         }
 
-
         public static void Run_cmd()
         {
-            string fileName = @"C:\Users\Emanuele\Desktop\Detection_varie\Form_color_detection.py";
+            string fileName = @"C:\Users\Emanuele\Desktop\Detection_varie\Tag_Aruco\Tag_Aruco_Form_Color_detection.py";
 
             Process p = new Process();
-            p.StartInfo = new ProcessStartInfo(@"C:\Users\Emanuele\AppData\Local\Programs\Python\Python311\python.exe", fileName)
+            p.StartInfo = new ProcessStartInfo(@"C:\Users\Emanuele\AppData\Local\Programs\Python\Python38-32\python.exe", fileName)
             {
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
@@ -317,7 +381,7 @@ namespace SLN
         }
         public static void Run_cmd_2()
         {
-            string fileName = @"C:\Users\Emanuele\Desktop\Detection_varie\Form_color_detection_Double.py";
+            string fileName = @"C:\Users\Emanuele\Desktop\Detection_varie\Tag_Aruco\Tag_Aruco_Form_Color_detection.py";
 
             Process p = new Process();
             p.StartInfo = new ProcessStartInfo(@"C:\Users\Emanuele\AppData\Local\Programs\Python\Python311\python.exe", fileName)
@@ -408,6 +472,113 @@ namespace SLN
             //yellow circle dx
             //yellow rectangle sx
             //
+
+        }
+
+        public static NetworkInput ConvertFromId(int id)
+        {
+            if (id == 0) //rettangolo rosso
+                return new NetworkInput(1, 1, -1, -1);
+            if (id == 1) //cerchio rosso
+                return new NetworkInput(1, 3, -1, -1);
+            if (id == 2) //triangolo rosso
+                return new NetworkInput(1, 2, -1, -1);
+            if (id == 3) //rettangolo blu
+                return new NetworkInput(2, 1, -1, -1);
+            if (id == 4) //cerchio blu
+                return new NetworkInput(2, 3, -1, -1);
+            if (id == 5) //triangolo blu
+                return new NetworkInput(2, 2, -1, -1);
+            if (id == 6) //rettangolo giallo
+                return new NetworkInput(0, 1, -1, -1);
+            if (id == 7) //cerchio giallo
+                return new NetworkInput(0, 3, -1, -1);
+            if (id == 8) //triangolo giallo
+                return new NetworkInput(0, 2, -1, -1);
+            if (id == -1) //null
+                return new NetworkInput(-1, -1, -1, -1);
+            return null;
+
+        }
+
+        public static int[] Get_Features()
+        {
+            int[] inputs = new int[2];
+            int number;
+
+            String file = "C:\\Users\\Emanuele\\Desktop\\Detection_varie\\Tag_Aruco\\input.txt";
+            StreamReader dataStream = new StreamReader(file);
+            string datasample;
+
+
+            int i = 0;
+            while ((datasample = dataStream.ReadLine()) != null)
+            {
+                if (i > 2)
+                    break;
+                if (int.TryParse(datasample, out number))
+                {
+                    inputs[i++] = number;
+                }
+
+            }
+            dataStream.Close();
+
+            return inputs;
+
+
+        }
+
+        public static float[] Get_Centers()
+        {
+            float[] centers = new float[2];
+            float number;
+
+            String file = "C:\\Users\\Emanuele\\Desktop\\Detection_varie\\Tag_Aruco\\centers.txt";
+            StreamReader dataStream = new StreamReader(file);
+            string datasample;
+
+
+            int i = 0;
+            while ((datasample = dataStream.ReadLine()) != null)
+            {
+                if (i > 2)
+                    break;
+                if (float.TryParse(datasample, NumberStyles.Any, CultureInfo.InvariantCulture, out number))
+                {
+                    centers[i++] = number;
+                }
+
+            }
+            dataStream.Close();
+            if (i == 0)
+            {
+                centers = new float[] { -1, -1 };
+                return centers;
+            }
+
+            return centers;
+
+
+        }
+
+        //ritorna -1 se non valido
+        public static float Get_Distance()
+        {
+
+            String file = "C:\\Users\\Emanuele\\Desktop\\Detection_varie\\Tag_Aruco\\distanza.txt";
+            StreamReader dataStream = new StreamReader(file);
+            string datasample = dataStream.ReadLine();
+
+
+
+            float number;
+            float.TryParse(datasample, NumberStyles.Any, CultureInfo.InvariantCulture, out number);
+            Console.WriteLine("data: " + number);
+            dataStream.Close();
+
+            return number;
+
 
         }
 

@@ -141,12 +141,14 @@
     <Compile Include="LiquidState.cs" />
     <Compile Include="Network.cs" />
     <Compile Include="NetworkInput.cs" />
+    <Compile Include="ObjectDetection.cs" />
     <Compile Include="Neuron.cs" />
     <Compile Include="NeuronLoggerStruct.cs" />
     <Compile Include="NeuronMorrisLecar.cs" />
     <Compile Include="NeuronMorrisLecarLoggerStruct.cs" />
     <Compile Include="OutputLayer.cs" />
     <Compile Include="OutputLayerExternal.cs" />
+    <Compile Include="Program_Serial.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SpikeList.cs" />

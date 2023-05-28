@@ -33,24 +33,6 @@ namespace SLN
                 Constants.LIQUID_DIMENSION_I,
                 Constants.LIQUID_DIMENSION_J];
 
-            //_firstLayer1 = new Neuron[
-            //    Constants.FIRST_LAYER_DIMENSION_I,
-            //    Constants.FIRST_LAYER_DIMENSION_J];
-
-            ////All values are initialized to false by default
-            //_inputs1 = new bool[
-            //    Constants.FIRST_LAYER_DIMENSION_I,
-            //    Constants.FIRST_LAYER_DIMENSION_J];
-
-            //Populating first layer
-            //for (int i = 0; i < Constants.FIRST_LAYER_DIMENSION_I; i++)
-            //    for (int j = 0; j < Constants.FIRST_LAYER_DIMENSION_J; j++)
-            //    {
-            //        _firstLayer1[i, j] = new SpikingNeuron();
-            //        _firstLayer1[i, j].setCoord(i, j, LayerNumbers.FirstLayer_1);
-
-            //    }
-
             //Populating liquid layer
             for (int i = 0; i < Constants.LIQUID_DIMENSION_I; i++)
                 for (int j = 0; j < Constants.LIQUID_DIMENSION_J; j++)
