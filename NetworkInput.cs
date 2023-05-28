@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+
 
 namespace SLN
 {
@@ -9,6 +11,9 @@ namespace SLN
     public class NetworkInput
     {
         public int id;
+        public int[] winner_ids = new int[4];
+        public int[] winner_motors = new int[4];
+
 
         private int _color;
 
@@ -213,7 +218,15 @@ namespace SLN
             this.id = id;
         }
 
+        public static List<NetworkInput> GetNetworkList(int[] ids, int[] motors, int end_reward)
+        {
+            List<NetworkInput> inputs = new List<NetworkInput>();
 
+            for (int i = 0; i < ids.Length; i++) 
+                inputs.Add(new NetworkInput(ids[i], motors[i], i == (ids.Length-1) ? end_reward : -1));
+
+            return inputs;
+        }
 
         /// <summary>
         /// Constructor (reward off by default)
@@ -302,7 +315,8 @@ namespace SLN
         /// value of reward enclosed in braces</returns>
         public override string ToString()
         {
-            return _color + " " + _size + " " + _hdistr + " " + _vdistr + " (" + _reward + ") " + " " + _end;
+            return ObjectDetection.FromIdToString(id) + ObjectDetection.FromMotorToString(_motor) + ObjectDetection.FromEndToString(REWARDLEVEL);
+            //return _color + " " + _size + " " + _hdistr + " " + _vdistr + " (" + _reward + ") " + " " + _end;
         }
     }
 }

@@ -26,6 +26,19 @@ namespace SLN
                 Console.WriteLine("open() error: " + ex.Message);
                 Environment.Exit(1);
             }
+
+            Console.CancelKeyPress += (sender, e) =>
+            {
+                Console.WriteLine("CTRL+C detected!\n");
+
+                // Impedisce che il programma si chiuda immediatamente.
+                e.Cancel = true;
+
+                // Chiama la tua funzione qui
+                this.Exit(true);
+
+                e.Cancel = false;
+            };
         }
 
         public void GoForward(bool output)

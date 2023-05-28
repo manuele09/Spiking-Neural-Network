@@ -163,25 +163,54 @@ namespace SLN
 
         }
 
-        public static NetworkInput GenerateInput(int id, int motor, int reward_level)
+        public static string FromIdToString(int id)
         {
-            int[] features = FromIdToFeatures(id);
+            if (id == 0) //rettangolo rosso
+                return "Red Rectangle ";
+            if (id == 1) //cerchio rosso
+                return "Red Circle ";
+            if (id == 2) //triangolo rosso
+                return "Red Triangle ";
 
-            //prima feature: colore;
-            //seconda feature: forma;
+            if (id == 3) //rettangolo blu
+                return "Blue Rectangle ";
+            if (id == 4) //cerchio blu
+                return "Blue Circle ";
+            if (id == 5) //triangolo blu
+                return "Blue Triangle ";
 
-            //motor 0 o 1;
-            //reward level da 1 a 3 (compresi).
+            if (id == 6) //rettangolo giallo
+                return "Yellow Rectangle ";
+            if (id == 7) //cerchio giallo
+                return "Yellow Circle ";
+            if (id == 8) //triangolo giallo
+                return "Yellow Triangle ";
 
-            //valori più piccoli di quelli elencati implicano zero reward.
-            Console.WriteLine("Colore: " + features[0] + "; Forma: " + features[1]);
-
-            return new NetworkInput(features[0], features[1], -1, -1, motor, reward_level);
-
-
+            return "Null Input";
 
         }
 
+        public static string FromMotorToString(int motor)
+        {
+            if (motor == 0)
+                return "Right ";
+            if (motor == 1)
+                return "Left ";
+            else
+                return " ";
+        }
+
+        public static string FromEndToString(int level)
+        {
+            if (level == 1)
+                return "End (First level reward) ";
+            if (level == 2)
+                return "End (Secon level reward) ";
+            if (level == 3)
+                return "End (Third level reward) ";
+            else
+                return " ";
+        }
     }
 
 

@@ -13,6 +13,8 @@
         public const double KF = 0.35; 
         public const double KI = 70;
 
+        public const bool OUTPUT = true;
+
 
     
         #region Network geometry

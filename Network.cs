@@ -17,6 +17,9 @@ namespace SLN
     [Serializable]
     public class Network
     {
+        public int[] morris_ids = new int[8];
+        public int[] winner_seq_ids;
+        public int[] winner_seq_motors;
         private bool _endSequenceReward;
         private int _levelReward;
         private int _motor;
@@ -548,7 +551,7 @@ namespace SLN
                     double[] _target = new double[Constants.SIMULATION_STEPS_LIQUID];
 
                     for (int i = 0; i < Constants.SIMULATION_STEPS_LIQUID; i++)
-                        _target[i] = (double)Math.Sin(i * 2 * Math.PI * (Constants.start_freq + target*Constants.incr_freq) * 0.001 / Constants.INTEGRATION_STEP_MORRIS_LECAR) / 100;
+                        _target[i] = (double)Math.Sin(i * 2 * Math.PI * (Constants.start_freq + target * Constants.incr_freq) * 0.001 / Constants.INTEGRATION_STEP_MORRIS_LECAR) / 100;
 
                     double[] W;
 
@@ -867,7 +870,7 @@ namespace SLN
         public void setInput(NetworkInput input)
         {
             countInput.Add(input);
-            
+
             currentInput = input;
             _layers.setInput(input);
             //_liquid.setInput(input);
@@ -899,7 +902,7 @@ namespace SLN
         /// <param name="simNumber">Number of the simulation</param>
         /// <param name="learning">If <i>true</i> sets the learning on</param>
         //ritorna un intero, non un double
-        private double simulateLiquid(StateLogger log, StateLogger logSTDP, int simNumber, int simNumberInternal, bool learning, int signedTarget, bool test)
+        public double simulateLiquid(StateLogger log, StateLogger logSTDP, int simNumber, int simNumberInternal, bool learning, int signedTarget, bool test)
         {
             //inizialmente simNumberInternal = -1, Option = 0, signedtarget=0
             String targetS;
@@ -1563,9 +1566,9 @@ namespace SLN
             {
                 //Console.WriteLine("\nLearning non riuscito, in atto un nuovo tentantivo.\n");
 
-               
-                setOption(3);   
-                                
+
+                setOption(3);
+
 
 
                 //PER PSEUDO-INVERSA CON RUMORE
@@ -1622,11 +1625,11 @@ namespace SLN
             }
 
             simNumberInternal = -1;
-            Console.WriteLine("\t\t\t\t\t\t\t\tNeurone vincitore: " + indexWinOut);
-            Console.WriteLine("\t\t\t\t\t\t\t\tFrequenza End Neuron: " + frequencyRewardSequence);
-            Console.WriteLine("\t\t\t\t\t\t\t\tNeurone Motore vincitore: " + feat[feat.Length - 1] + "\n\n");
+            Console.WriteLine("\t\t\t\t\t\t\t\tMorris Lecar Winner: " + indexWinOut);
+            Console.WriteLine("\t\t\t\t\t\t\t\tEnd Neuron Winner Frequency: " + frequencyRewardSequence);
+            Console.WriteLine("\t\t\t\t\t\t\t\tMotor Neuron Winner: " + feat[feat.Length - 1] + "\n\n");
 
-
+            morris_ids[indexWinOut] = currentInput.id;
 
         }
 
@@ -1679,33 +1682,49 @@ namespace SLN
             {
                 _context.endSequence();
                 _context.nullValid();
-                primo_test = 1; 
+                primo_test = 1;
             }
 
             if (lista_input.Count > 1)
             {
-                Console.WriteLine("********************Imagination**************************");
+                System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Imagination *** *** *** ****** *** *** ****** *** ***");
+
                 for (int i = 0; i < lista_input.Count; i++)
                 {
-                    Console.WriteLine("-------------------Simulo Input---------------: " + i);
+                    Console.WriteLine("Input number " + i + ": " + lista_input[i]);
                     sim = 0;
                     resetInputs();
                     _context.endSequence();
                     _context.nullValid();
                     setInput(lista_input[i]);
+                    lista_input[i].winner_ids = new int[4];
+                    lista_input[i].winner_motors = new int[4];
                     contatore = 0;
                     do
                     {
-                        Console.WriteLine("     Simulo internamente: " + sim);
+                        Console.WriteLine("         Imaginating input " + sim + ":");
                         if (sim != 0)
                         {
                             resetInputs();
                             setInput(new NetworkInput(-1, -1, -1, -1));
                         }
                         this.simulateLiquid(null, null, simNumber + i, -1, false, 0, true);
-                        Console.WriteLine("\t\t\t\t\t\t\t\tNeurone vincitore: " + indexWinOut);
-                        Console.WriteLine("\t\t\t\t\t\t\t\tFrequenza End Neuron: " + frequencyRewardSequence);
-                        Console.WriteLine("\t\t\t\t\t\t\t\tNeurone Motore vincitore: " + feat[feat.Length - 1] + "\n\n");
+                        if (indexWinOut != -1)
+                            Console.WriteLine("\t\t\t\t\t\t\t\tMorris Lecar Winner: " + indexWinOut + " (" + ObjectDetection.FromIdToString(morris_ids[indexWinOut]).Replace(" ", "") + ")");
+                        else
+                            Console.WriteLine("\t\t\t\t\t\t\t\tMorris Lecar Winner: " + indexWinOut);
+                        Console.WriteLine("\t\t\t\t\t\t\t\tEnd Neuron Winner Frequency: " + frequencyRewardSequence);
+                        Console.WriteLine("\t\t\t\t\t\t\t\tMotor Neuron Winner: " + feat[feat.Length - 1] + "\n\n");
+
+                        if (indexWinOut == -1)
+                        {
+                            lista_input[i].winner_ids[sim] = -1;
+                            lista_input[i].winner_motors[sim] = -1;
+                            break;
+                        }
+                        lista_input[i].winner_ids[sim] = morris_ids[indexWinOut];
+                        lista_input[i].winner_motors[sim] = feat[feat.Length - 1];
+
                         sim++;
                         contatore++;
                         if (this.getEndSequenceFrequency() > end_freq)
@@ -1718,20 +1737,28 @@ namespace SLN
                 }
                 resetInputs();
                 setInput(lista_input[winner]);
+                winner_seq_ids = lista_input[winner].winner_ids;
+                winner_seq_motors = lista_input[winner].winner_motors;
                 _context.endSequence();
                 _context.nullValid();
-                Console.WriteLine("Input scelto = " + winner);
-                Console.WriteLine("********************Fine Imagination**************************");
+                Console.WriteLine("******************** Imagination Fase Finished **************************");
+
+                Console.WriteLine("The winner sequence is:");
+                for (int i = 0; i < winner_seq_ids.Length && winner_seq_ids[i] != -1; i++)
+                    Console.WriteLine("\t\t\t"+ObjectDetection.FromIdToString(winner_seq_ids[i]));
+
             }
+
+
             /*if (indexWinOut == -1) //se l'input non è stato riconoscuto resetto il context
             {
                 _context.endSequence();
                 _context.nullValid();
             }*/
-            this.simulateLiquid(log, logSTDP, simNumber, -1, false, 0, true);
-            Console.WriteLine("\t\t\t\t\t\t\t\tNeurone vincitore: " + indexWinOut);
-            Console.WriteLine("\t\t\t\t\t\t\t\tFrequenza End Neuron: " + frequencyRewardSequence);
-            Console.WriteLine("\t\t\t\t\t\t\t\tNeurone Motore vincitore: " + feat[feat.Length - 1] + "\n\n");
+            /*this.simulateLiquid(log, logSTDP, simNumber, -1, false, 0, true);
+             Console.WriteLine("\t\t\t\t\t\t\t\tNeurone vincitore: " + indexWinOut);
+             Console.WriteLine("\t\t\t\t\t\t\t\tFrequenza End Neuron: " + frequencyRewardSequence);
+             Console.WriteLine("\t\t\t\t\t\t\t\tNeurone Motore vincitore: " + feat[feat.Length - 1] + "\n\n");*/
 
         }
 
@@ -1928,7 +1955,7 @@ namespace SLN
                 initSamenessToFirst(target); //feedback
                 initLiquidToOutput(dest);
                 _context.addPath(_outExt.getNeuronMorris(target));
-                if (Constants.DEBUG==1)
+                if (Constants.DEBUG == 1)
                     Console.WriteLine("E' stata aggiunta una nuova classe. Target: " + target);
                 return target;
             }
