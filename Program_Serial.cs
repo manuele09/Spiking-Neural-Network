@@ -64,33 +64,13 @@ namespace SLN
 
             bool esci;
 
-            string[] serialPorts = SerialPort.GetPortNames();
-            foreach (string p in serialPorts)
-                Console.WriteLine(p);
-            SerialPort serialPort = new SerialPort("COM3", 1000000, Parity.None, 8, StopBits.One);
-            try
-            {
-                serialPort.Open();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("open() error: " + ex.Message);
-                Environment.Exit(1);
-            }
+
+            SerialWriter serial = new SerialWriter("COM3");
+
             while (true)
             {
                 //vai avanti
-                try
-                {
-                    serialPort.WriteLine("w");
-                    serialPort.BaseStream.Flush();
-
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("write error: " + ex.Message);
-                    Environment.Exit(1);
-                }
+                serial.GoForward(true);
 
                 //cammino finchè sono vicino all'item "counter"
                 Console.WriteLine("Vado verso l'id " + lista_vincente[counter]);
@@ -114,36 +94,13 @@ namespace SLN
                 }
 
                 //fermati
-                /*.WriteLine("Mi fermo");
-                try
-                {
-                    serialPort.WriteLine("h");
-                    serialPort.BaseStream.Flush();
-
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("write error: " + ex.Message);
-                    Environment.Exit(1);
-                }*/
+                //serial.Stop(true);
 
                 if (counter == (lista_vincente.Length - 1)) //vedere condizione contorno
                 {
-                    try
-                    {
-                        serialPort.WriteLine("h");
+                    serial.Stop(true);
 
-                        serialPort.BaseStream.Flush();
-
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("write error: " + ex.Message);
-                        Environment.Exit(1);
-                    }
-                    Console.WriteLine("Esco");
-                    serialPort.Close();
-                    Environment.Exit(1);
+                    serial.Exit(true);
                 }
 
                 //gira a lista_motore[counter]
@@ -151,10 +108,9 @@ namespace SLN
                 try
                 {
                     if (lista_motore[counter] == 0)
-                        serialPort.WriteLine("d");
+                        serial.GoRight(true);
                     else
-                        serialPort.WriteLine("a");
-                    serialPort.BaseStream.Flush();
+                        serial.GoLeft(true);
 
                 }
                 catch (Exception ex)
