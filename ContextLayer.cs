@@ -39,25 +39,28 @@ namespace SLN
         LinkedList<SynapseSTDP> _ringToOtherRingSTDP;
         LinkedList<Synapse> _ringToOtherRing;
         OutputLayerExternal outlayer;
+        Layers inputlayer;
         AltNeuron[] _endSequenceNeurons;
         AltNeuron[] _motorNeurons;
         LinkedList<SynapseSTDP> _contextToEndSequence;
         LinkedList<SynapseSTDP> _contextToMotor;
         LinkedList<SynapseSTDP> _morrisToMotor;
         LinkedList<Synapse> _motorToMotor;
+
         LinkedList<SynapseSTDP> _ringToMorris;
+        LinkedList<SynapseSTDP> _ringToInput;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        internal ContextLayer(OutputLayerExternal o)
+        internal ContextLayer(OutputLayerExternal o, Layers l)
         {
 
-            this.init(o);
+            this.init(o, l);
 
         }
 
-        private void init(OutputLayerExternal o)
+        private void init(OutputLayerExternal o, Layers l)
         {
             t = -1;
             count_id = -1;
@@ -89,8 +92,11 @@ namespace SLN
             _contextToEndSequence = new LinkedList<SynapseSTDP>();
             _contextToMotor = new LinkedList<SynapseSTDP>();
             _motorToMotor = new LinkedList<Synapse>();
+            
+
             _ringToMorris = new LinkedList<SynapseSTDP>();
             outlayer = o;
+
             Random rnd = new Random();
             for (int i = 0; i < Constants.MOTOR; i++)
             {
@@ -104,8 +110,13 @@ namespace SLN
 
                 }
 
-
             }
+
+            _ringToInput = new LinkedList<SynapseSTDP>();
+            inputlayer = l;
+
+            
+
 
         }
 
@@ -150,6 +161,13 @@ namespace SLN
                         _ringToMorris.AddLast(new SynapseSTDP(m, outlayer.getNeuronMorris(i),
                                           Constants.CONTEXT_TO_MORRIS_GAIN_STDP,
                                           Constants.CONTEXT_TO_MORRIS_GAIN, Constants.CONTEXT_TO_MORRIS_Weight));
+
+                    for (int i = 0; i < Constants.FIRST_LAYER_DIMENSION_I; i++)
+                        for (int j = 0; j < Constants.FIRST_LAYER_DIMENSION_J; j++)
+                            _ringToInput.AddLast(new SynapseSTDP(m, inputlayer.getFirstLayerNeuron1(i, j), 
+                                Constants.CONTEXT_TO_MORRIS_GAIN_STDP,
+                                Constants.CONTEXT_TO_INPUT_GAIN, 
+                                Constants.CONTEXT_TO_MORRIS_Weight));
                 }
                 else
                     _ringToMorris.AddLast(new SynapseSTDP(m, destNeuron,
@@ -264,6 +282,13 @@ namespace SLN
                             _ringToMorris.AddLast(new SynapseSTDP(m, outlayer.getNeuronMorris(k),
                                               Constants.CONTEXT_TO_MORRIS_GAIN_STDP,
                                               Constants.CONTEXT_TO_MORRIS_GAIN, Constants.CONTEXT_TO_MORRIS_Weight));
+
+                        for (int k = 0;k  < Constants.FIRST_LAYER_DIMENSION_I; k++)
+                            for (int j = 0; j < Constants.FIRST_LAYER_DIMENSION_J; j++)
+                                _ringToInput.AddLast(new SynapseSTDP(m, inputlayer.getFirstLayerNeuron1(k, j),
+                                    Constants.CONTEXT_TO_MORRIS_GAIN_STDP,
+                                    Constants.CONTEXT_TO_INPUT_GAIN,
+                                    Constants.CONTEXT_TO_MORRIS_Weight));
                     }
                     else
                         _ringToMorris.AddLast(new SynapseSTDP(m, destNeuron,
@@ -596,6 +621,7 @@ namespace SLN
 
             //RING TO MORRIS
             if (test && t > 0)
+            {
                 foreach (SynapseSTDP s in _ringToMorris)
                 {
                     if (s.Start == winContextOld[t - 1])
@@ -605,6 +631,17 @@ namespace SLN
                             logSTDP.logSynapse(s, step);
                     }
                 }
+
+                foreach (SynapseSTDP s in _ringToInput)
+                {
+                    if (s.Start == winContextOld[t - 1])
+                    {
+                        s.simulate(step);
+                        if (logSTDP != null)
+                            logSTDP.logSynapse(s, step);
+                    }
+                }
+            }
 
             //CONTEXT TO MOTOR
             foreach (SynapseSTDP s in _contextToMotor)
@@ -743,6 +780,26 @@ namespace SLN
                     {
                         if (s.Start.is_winner_old && s.Start.ROW < t)
                             s.setW(-160, 50);
+                    }
+
+                }
+
+                foreach (SynapseSTDP s in _ringToInput)
+                {  
+                    if (inputlayer._inputs1[s.Dest.ROW, s.Dest.COLUMN] && s.Start.is_winner_old && s.Start.ROW < t)
+                    {
+
+
+                        s.setW(160, 50);
+
+
+                        if (logSTDP != null)
+                            logSTDP.logSynapse(s, Constants.SIMULATION_STEPS_LIQUID + Constants.SIMULATION_STEPS_FEEDFORWARD + 1);
+                    }
+                    else
+                    {
+                        if (s.Start.is_winner_old && s.Start.ROW < t)
+                            s.setW(-160, 50); 
                     }
 
                 }

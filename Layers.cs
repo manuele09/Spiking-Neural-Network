@@ -29,7 +29,7 @@ namespace SLN
     internal class Layers
     {
         private Neuron[,] _firstLayer1;
-        protected bool[,] _inputs1;
+        public bool[,] _inputs1;
 
         /// <summary>
         /// Constructor

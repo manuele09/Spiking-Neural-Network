@@ -57,7 +57,9 @@ namespace SLN
             #region learning
 
             #region prima_sequenza
-            int[] ids = { 3, 0, 4, 1 };
+            //int[] ids = { 3, 0, 4, 1 };
+            //int[] motors = { 0, 1, 1, 1 };
+            int[] ids = { 3, 0, 4, 1};
             int[] motors = { 0, 1, 1, 1 };
             List<NetworkInput> prima_sequenza = NetworkInput.GetNetworkList(ids, motors, 3);
             #endregion

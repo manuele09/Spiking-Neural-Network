@@ -926,6 +926,12 @@
 
         public const double CONTEXT_TO_MORRIS_Weight = 0;
 
+        public const double CONTEXT_TO_INPUT_GAIN = 2; ////
+
+        public const double CONTEXT_TO_INPUT_GAIN_STDP = 2.0;
+
+
+
         #endregion
 
         #region Motor-to-Motor

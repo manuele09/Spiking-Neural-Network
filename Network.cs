@@ -138,7 +138,7 @@ namespace SLN
             _layers = new Layers();
             _liquid = new LiquidState();
             _outExt = new OutputLayerExternal();
-            _context = new ContextLayer(_outExt);
+            _context = new ContextLayer(_outExt, _layers);
             _context.addPath(_outExt.getNeuronMorris(0));
 
             _firstToFirst1 = new LinkedList<Synapse>();
@@ -1142,12 +1142,28 @@ namespace SLN
                     //_ntarget.I = (signedTarget + 1) * 10;
                     //_ntarget.simulate(step);
 
+                    foreach (Synapse s in _firstToFirst1)
+                    {
+                        s.simulate(step);
+                        if (log != null)
+                            log.logSynapse(s, step);
+                    }
+
+                    foreach (Synapse s in _firstToFirstSTDP)
+                    {
+                        s.simulate(step);
+                        if (log != null)
+                            logSTDP.logSynapse(s, step);
+                    }
+
+                    _layers.simulateFirst1(step, log);
+
                     //integration=true se si sono attivati gli stessi neuroni nel layer di input
                     if (step == 2 * Constants.SIMULATION_STEPS_FEEDFORWARD)
                     {
                         winnerFirstA = _layers.getWinnerFirstActive(2 * Constants.SIMULATION_STEPS_FEEDFORWARD);
                         for (int i = 0; i < 4; i++)
-                            if (winnerFirstA != null && winnerFirstA[i] != null && winnerFirst[i].COLUMN == winnerFirstA[i].COLUMN)
+                            if (winnerFirst != null && winnerFirstA != null && winnerFirstA[i] != null && winnerFirst[i] != null && winnerFirst[i].COLUMN == winnerFirstA[i].COLUMN)
                                 integration = true;
                             else
                             {
@@ -1270,6 +1286,22 @@ namespace SLN
                         logSTDP.printLog();
                         logSTDP.newIteration();
                     }
+
+                    foreach (Synapse s in _firstToFirst1)
+                    {
+                        s.simulate(step);
+                        if (log != null)
+                            log.logSynapse(s, step);
+                    }
+
+                    foreach (Synapse s in _firstToFirstSTDP)
+                    {
+                        s.simulate(step);
+                        if (log != null)
+                            logSTDP.logSynapse(s, step);
+                    }
+
+                    _layers.simulateFirst1(step, log);
                     //with target spiking
                     //_ntarget.I = (signedTarget + 1) * 10;
                     //_ntarget.simulate(step);
