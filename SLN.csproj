@@ -118,7 +118,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="CSML">
-      <HintPath>..\..\..\..\Inverse matrix\CSML_complex\CSML\bin\Release\CSML.dll</HintPath>
+      <HintPath>bin\x86\Release\CSML.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="System" />

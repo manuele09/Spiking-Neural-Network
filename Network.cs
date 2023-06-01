@@ -1434,7 +1434,9 @@ namespace SLN
             }
             countInput.Clear();
 
-
+            Console.WriteLine("\t\t\t\t\t\t\t\tMorris Lecar Winner new: " + indexWinOut);
+            Console.WriteLine("\t\t\t\t\t\t\t\tEnd Neuron Winner Frequency new: " + frequencyRewardSequence);
+            Console.WriteLine("\t\t\t\t\t\t\t\tMotor Neuron Winner new: " + feat[feat.Length - 1] + "\n\n");
             //return (errorMean / Constants.SIMULATION_STEPS_LIQUID);
             return indexWinOut;
 

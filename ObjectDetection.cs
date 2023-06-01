@@ -83,12 +83,16 @@ namespace SLN
             dataStream.Close();
 
             dataStream = new StreamReader(distance_path);
-            datasample = dataStream.ReadLine();
-            float.TryParse(datasample, NumberStyles.Any, CultureInfo.InvariantCulture, out number2);
-            dataStream.Close();
+            //datasample = dataStream.ReadLine();
+            //float.TryParse(datasample, NumberStyles.Any, CultureInfo.InvariantCulture, out number2);
 
-            for (int i = 0; i < n_inputs; i++)
-                distances[i] = number2;
+            //for (int i = 0; i < n_inputs; i++)
+              //  distances[i] = number2;
+
+            for (int i = 0; ((datasample = dataStream.ReadLine()) != null) && i < 2; i++)
+                if (float.TryParse(datasample, NumberStyles.Any, CultureInfo.InvariantCulture, out number2))
+                    distances[i] = number2;
+            dataStream.Close();
 
         }
 

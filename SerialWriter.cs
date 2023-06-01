@@ -41,6 +41,23 @@ namespace SLN
             };
         }
 
+        public void GoForward(bool output, int id)
+        {
+            try
+            {
+                serialPort.WriteLine("w");
+                serialPort.BaseStream.Flush();
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("write error: " + ex.Message);
+                Environment.Exit(1);
+            }
+            if (output)
+                Console.WriteLine("\t\t\t\t\t\tGoing Towards " + ObjectDetection.FromIdToString(id));
+        }
+
         public void GoForward(bool output)
         {
             try
@@ -55,9 +72,9 @@ namespace SLN
                 Environment.Exit(1);
             }
             if (output)
-                Console.WriteLine("Going Forward");
+                Console.WriteLine("\t\t\t\t\t\tGoing Forward "); ;
         }
-        
+
         public void Stop(bool output)
         {
             try
@@ -73,7 +90,7 @@ namespace SLN
             }
 
             if (output)
-                Console.WriteLine("Stopping");
+                Console.WriteLine("\t\t\t\t\t\tStopping");
         }
 
         public void GoRight(bool output)
@@ -91,8 +108,27 @@ namespace SLN
             }
 
             if (output)
-                Console.WriteLine("Turning Right");
+                Console.WriteLine("\t\t\t\t\t\tTurning Right");
         }
+
+        public void GoRight(bool output, int id)
+        {
+            try
+            {
+                serialPort.WriteLine("d");
+                serialPort.BaseStream.Flush();
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("write error: " + ex.Message);
+                Environment.Exit(1);
+            }
+
+            if (output)
+                Console.WriteLine("\t\t\t\t\t\tTurning Right Towards " + ObjectDetection.FromIdToString(id));
+        }
+
         public void GoLeft(bool output)
         {
             try
@@ -108,15 +144,33 @@ namespace SLN
             }
 
             if (output)
-                Console.WriteLine("Turning Left");
+                Console.WriteLine("\t\t\t\t\t\tTurning Left");
         }
-        
+
+        public void GoLeft(bool output, int id)
+        {
+            try
+            {
+                serialPort.WriteLine("a");
+                serialPort.BaseStream.Flush();
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("write error: " + ex.Message);
+                Environment.Exit(1);
+            }
+
+            if (output)
+                Console.WriteLine("\t\t\t\t\t\tTurning Left Towards " + ObjectDetection.FromIdToString(id));
+        }
+
         public void Exit(bool output)
         {
             Stop(false);
             serialPort.Close();
             if (output)
-                Console.WriteLine("Serial comunication killed");
+                Console.WriteLine("\t\t\t\t\t\tSerial comunication killed");
         }
         public static void PrintPortAvaibles()
         {

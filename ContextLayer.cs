@@ -34,7 +34,7 @@ namespace SLN
 
 
         LinkedList<AltNeuron>[] neurons = new LinkedList<AltNeuron>[Constants.RINGS];
-       // LinkedList<Synapse> _ringToring;
+        // LinkedList<Synapse> _ringToring;
         LinkedList<Synapse> _morrisToRing;
         LinkedList<SynapseSTDP> _ringToOtherRingSTDP;
         LinkedList<Synapse> _ringToOtherRing;
@@ -68,7 +68,7 @@ namespace SLN
             valid = new int[Constants.RINGS + 1];                 // metto un posto in più così conservo pure il risultato dell'end sequence
             for (int i = 0; i < Constants.RINGS; i++)
                 neurons[i] = new LinkedList<AltNeuron>();
-           // _ringToring = new LinkedList<Synapse>();
+            // _ringToring = new LinkedList<Synapse>();
             _ringToOtherRingSTDP = new LinkedList<SynapseSTDP>();
             _morrisToMotor = new LinkedList<SynapseSTDP>();
             _ringToOtherRing = new LinkedList<Synapse>();
@@ -273,9 +273,9 @@ namespace SLN
                 }
             }
 
-           // _ringToring = new LinkedList<Synapse>();  //cancello tutte le sinapsi e le ricreo per ragioni di facilità di codice altrimenti ogni volta 
-                                                      //bisognerebbe aggiungere solo le sinapsi dai neuroni esistenti a questo aggiunto e poi le sinapsy da questo neurone a tutti gli altri esistenti
-                                                      //creo le sinapsi inibitorie all'interno dei neuroni dello stesso anello
+            // _ringToring = new LinkedList<Synapse>();  //cancello tutte le sinapsi e le ricreo per ragioni di facilità di codice altrimenti ogni volta 
+            //bisognerebbe aggiungere solo le sinapsi dai neuroni esistenti a questo aggiunto e poi le sinapsy da questo neurone a tutti gli altri esistenti
+            //creo le sinapsi inibitorie all'interno dei neuroni dello stesso anello
             /*for (int i = 0; i < Constants.RINGS; i++)
             {
                 foreach (AltNeuron n1 in neurons[i])
@@ -410,7 +410,7 @@ namespace SLN
             return nWin;
         }
 
-        
+
         public void simulate(int step, StateLogger log, StateLogger logSTDP, int sim_number, int simNumberInternal, bool end, bool test, int level, int motor)
         {
             //Modifiche da fare:
@@ -512,7 +512,7 @@ namespace SLN
             //MORRIS TO RING
             if (Constants.DEBUG == 1 && step == 999)
                 Console.WriteLine("Morris to Ring: " + _morrisToRing.Count);
-            foreach(Synapse s in _morrisToRing)
+            foreach (Synapse s in _morrisToRing)
             {
                 if (s.Dest.ROW <= t)
                     s.simulate_morris_to_ring(step, 1);
@@ -731,7 +731,7 @@ namespace SLN
                 {
                     if (s.Dest.COLUMN == outlayer.getWinnerNeuron() && s.Start.is_winner_old && s.Start.ROW < t)
                     {
-                       
+
 
                         s.setW(160, 50);
 
@@ -810,4 +810,3 @@ namespace SLN
 
 
 }
-
