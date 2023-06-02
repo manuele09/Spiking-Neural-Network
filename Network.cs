@@ -43,6 +43,12 @@ namespace SLN
 
         // Layers
         private Layers _layers;
+
+        public void set_random_current(bool value)
+        {
+            _layers.random = value;
+        }
+
         private LiquidState _liquid;
         private OutputLayerExternal _outExt;
         private ContextLayer _context;
@@ -164,9 +170,9 @@ namespace SLN
             simNumberInternal = -1;
             frequencyRewardSequence = 0;
             indexWinOut = -1;
-            MLtoInput = new int[Constants.CLASSES, 4];
+            MLtoInput = new int[Constants.CLASSES, Constants.FIRST_LAYER_DIMENSION_I];
             for (int i = 0; i < Constants.CLASSES; i++)
-                for (int j = 0; j < 4; j++)
+                for (int j = 0; j < Constants.FIRST_LAYER_DIMENSION_I; j++)
                 {
                     MLtoInput[i, j] = -1;
                 }
@@ -1126,8 +1132,11 @@ namespace SLN
 
                 _layers.resetNeuronsState();
 
+
                 for (int step = Constants.SIMULATION_STEPS_FEEDFORWARD; step < Constants.SIMULATION_STEPS_LIQUID + Constants.SIMULATION_STEPS_FEEDFORWARD; step++)
                 {
+                    if (step == 300)
+                        _layers.random = false;
                     if (log != null && (step % Constants.LOGGING_RATE) == 0)
                     {
                         log.printLog();
@@ -1162,7 +1171,7 @@ namespace SLN
                     if (step == 2 * Constants.SIMULATION_STEPS_FEEDFORWARD)
                     {
                         winnerFirstA = _layers.getWinnerFirstActive(2 * Constants.SIMULATION_STEPS_FEEDFORWARD);
-                        for (int i = 0; i < 4; i++)
+                        for (int i = 0; i < Constants.FIRST_LAYER_DIMENSION_I; i++)
                             if (winnerFirst != null && winnerFirstA != null && winnerFirstA[i] != null && winnerFirst[i] != null && winnerFirst[i].COLUMN == winnerFirstA[i].COLUMN)
                                 integration = true;
                             else
@@ -1246,6 +1255,7 @@ namespace SLN
                     foreach (SynapseSTDP s in _firstToFirstSTDP)
                     {
                         s.learn(0, 0);
+                        Console.WriteLine(s._W);
                         if (log != null)
                             logSTDP.logSynapse(s, Constants.SIMULATION_STEPS_LIQUID + Constants.SIMULATION_STEPS_FEEDFORWARD + 1);
 
@@ -1398,12 +1408,12 @@ namespace SLN
 
                     if (MLtoInput[indexWinOut, 0] == -1)
                     {
-                        for (int i = 0; i < 4; i++)
+                        for (int i = 0; i < winnerFirst.Length; i++)
                             if (winnerFirst[i] != null)
                                 MLtoInput[indexWinOut, i] = winnerFirst[i].COLUMN;
                     }
 
-                    for (int i = 0; i < 4; i++)
+                    for (int i = 0; i < Constants.FIRST_LAYER_DIMENSION_I; i++)
                         feat[i] = MLtoInput[indexWinOut, i];
 
                     feat[feat.Length - 1] = _context.getWinnerMotor(Constants.SIMULATION_STEPS_FEEDFORWARD + Constants.SIMULATION_STEPS_LIQUID);
@@ -1779,7 +1789,7 @@ namespace SLN
 
                 Console.WriteLine("The winner sequence is:");
                 for (int i = 0; i < winner_seq_ids.Length && winner_seq_ids[i] != -1; i++)
-                    Console.WriteLine("\t\t\t"+ObjectDetection.FromIdToString(winner_seq_ids[i]));
+                    Console.WriteLine("\t\t\t" + ObjectDetection.FromIdToString(winner_seq_ids[i]));
 
             }
 

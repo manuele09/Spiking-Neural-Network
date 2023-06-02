@@ -47,7 +47,7 @@ namespace SLN
 
             String pathPc = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             String net_path = pathPc + @"\Saved_Networks\net-";
-            int n_learnings = 2;
+            int n_learnings = 3;
             bool do_imagination = true;
 
 
@@ -63,11 +63,20 @@ namespace SLN
             int[] motors = { 0, 1, 1, 1 };
             List<NetworkInput> prima_sequenza = NetworkInput.GetNetworkList(ids, motors, 3);
             #endregion
-
+            #region prima_sequenza_2
+            //int[] ids = { 3, 0, 4, 1 };
+            //int[] motors = { 0, 1, 1, 1 };
+            ids = new int[] { 0};
+            motors = new int[] { 1};
+            List<NetworkInput> prima_sequenza_2 = NetworkInput.GetNetworkList(ids, motors, 3);
+            List<NetworkInput> prima_sequenza_3 = new List<NetworkInput>();
+            prima_sequenza_3.Add(prima_sequenza_2.Last());
+            #endregion
             #region seconda_sequenza
             ids = new int[] { 7, 6 };
             motors = new int[] { 1, 0 };
             List<NetworkInput> seconda_sequenza = NetworkInput.GetNetworkList(ids, motors, 1);
+
             #endregion
 
             #region terza_sequenza
@@ -87,6 +96,8 @@ namespace SLN
                 net.current_learning++;
                 System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Learning First Sequence*** *** *** ****** *** *** ****** *** ***");
                 SimulateInputs(net, prima_sequenza, 1);
+                System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Learning First Sequence*** *** *** ****** *** *** ****** *** ***");
+                //SimulateInputs(net, prima_sequenza_3, 1);
                 System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Learning Second Sequence*** *** *** ****** *** *** ****** *** ***");
                 //SimulateInputs(net, seconda_sequenza, 1);
                 System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Learning Third Sequence*** *** *** ****** *** *** ****** *** ***");
@@ -111,16 +122,23 @@ namespace SLN
                 sl = new StateLogger(pathPc + @"\Dati\Neurons" + net.current_epoch + ".txt", pathPc + @"\Dati\Synapse" + net.current_epoch + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + net.current_epoch + ".txt", true, false, true);
                 slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + net.current_epoch + ".txt", pathPc + @"\Dati\SynapseSTDP" + net.current_epoch + ".txt", false, true);
                 net.resetInputs();
-                net.setInput(new NetworkInput(3, -1, -1)); //Blue Rectangle
+                net.setInput(new NetworkInput(-1, -1, -1, -1));
+
+                // net.setInput(new NetworkInput(3, -1, -1)); //Blue Rectangle, id 3
+                net.set_random_current(true);
                 Console.WriteLine("Sim started attt " + DateTime.Now);
                 net.simulateLiquid(sl, slStdp, net.current_epoch, -1, false, 0, true);
                 Console.WriteLine("Sim finished attt " + DateTime.Now);
                 net.current_epoch++;
+                net.set_random_current(false);
 
                 sl = new StateLogger(pathPc + @"\Dati\Neurons" + net.current_epoch + ".txt", pathPc + @"\Dati\Synapse" + net.current_epoch + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + net.current_epoch + ".txt", true, false, true);
                 slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + net.current_epoch + ".txt", pathPc + @"\Dati\SynapseSTDP" + net.current_epoch + ".txt", false, true);
                 net.resetInputs();
                 net.setInput(new NetworkInput(-1, -1, -1, -1));
+                //net.setInput(new NetworkInput(-1, 1, -1, -1)); //solo rettangolo
+
+                //net.setInput(new NetworkInput(0, -1, -1)); //rettangolo rosso, id 0
                 Console.WriteLine("Sim started attt " + DateTime.Now);
                 net.simulateLiquid(sl, slStdp, net.current_epoch, -1, false, 0, true);
                 Console.WriteLine("Sim finished attt " + DateTime.Now);

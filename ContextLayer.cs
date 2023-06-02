@@ -790,17 +790,17 @@ namespace SLN
                     {
 
 
-                        s.setW(160, 50);
+                        s.setW(10, 50); //2 è troppo piccolo
 
 
                         if (logSTDP != null)
                             logSTDP.logSynapse(s, Constants.SIMULATION_STEPS_LIQUID + Constants.SIMULATION_STEPS_FEEDFORWARD + 1);
                     }
-                    else
+                    /*else
                     {
                         if (s.Start.is_winner_old && s.Start.ROW < t)
                             s.setW(-160, 50); 
-                    }
+                    }*/
 
                 }
             }

@@ -37,7 +37,7 @@ namespace SLN
 		/// <summary>
 		/// The weight of the synapse (with local excitation)
 		/// </summary>
-		protected double _W;
+		public double _W;
 
 		/// <summary>
 		/// The weight of the synapse (with local excitation)

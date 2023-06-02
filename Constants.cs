@@ -21,7 +21,7 @@
         /// <summary>
         /// Number of rows in the first layer
         /// </summary>
-        public const int FIRST_LAYER_DIMENSION_I = 4;
+        public const int FIRST_LAYER_DIMENSION_I = 2;
 
 		/// <summary>
 		/// Number of columns in the first layer
@@ -111,7 +111,7 @@
         /// <summary>
         /// Steps of simulation (phase FEEDFORWARD)
         /// </summary>
-        public const int SIMULATION_STEPS_FEEDFORWARD = 200; //1000;
+        public const int SIMULATION_STEPS_FEEDFORWARD = 300; //1000;
 
         /// <summary>
         /// Steps of an epoch (Liquid State)
@@ -460,7 +460,7 @@
         /// <summary>
         /// Gain in the calculation of the current for first-to-first-layer synapses
         /// </summary>
-        public const double FIRST_TO_FIRST_SYNAPTIC_GAIN_STDP = 0;// 1.5 3*0; //4.0; //2
+        public const double FIRST_TO_FIRST_SYNAPTIC_GAIN_STDP = 3;// 1.5 3*0; //4.0; //2
 		#endregion
 
 		#region Second-to-first synapses

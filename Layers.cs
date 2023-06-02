@@ -30,6 +30,7 @@ namespace SLN
     {
         private Neuron[,] _firstLayer1;
         public bool[,] _inputs1;
+        public bool random;
 
         /// <summary>
         /// Constructor
@@ -108,6 +109,9 @@ namespace SLN
             double iIn1 = Constants.INPUT_CURRENT;
             double iFb1 = 0 * Constants.FEEDBACK_CURRENT * (1 + 0.2 * rnd.NextDouble());
 
+            double random_current;
+            random_current = rnd.Next(40);
+
             for (int i = 0; i < Constants.FIRST_LAYER_DIMENSION_I; i++)
                 for (int j = 0; j < Constants.FIRST_LAYER_DIMENSION_J; j++)
                 {
@@ -119,9 +123,14 @@ namespace SLN
 
                     }
                     Neuron n = _firstLayer1[i, j];
+
+                    if (random) //sovrascrivo la corrente
+                        _firstLayer1[i, j].I += rnd.Next(40);
+
                     n.simulate(step);
                     if (log != null)
                         log.logNeuron(step, n);
+                    _firstLayer1[i, j].I = 0;
                 }
         }
 
@@ -160,12 +169,12 @@ namespace SLN
         internal Neuron[] getWinnerFirstActive(int lastTimestamp)
         {
             double winnerFreq = 0;
-            Neuron[] nWin = new Neuron[4];
+            Neuron[] nWin = new Neuron[2];
             bool input = false;
 
             for (int i = 0; i < _firstLayer1.GetLength(0); i++)
             {
-                winnerFreq = 160; //questa soglia era 100, l'ho aumentata perchè alcuni neuroni
+                winnerFreq = 160; //160; questa soglia era 100, l'ho aumentata perchè alcuni neuroni
                 //dell'input si triggeravano anche se senza input (a 150)
                 for (int j = 0; j < _firstLayer1.GetLength(1); j++)
                 {
@@ -173,11 +182,13 @@ namespace SLN
                     double freq = n.getFrequency(lastTimestamp);
                     if (freq > winnerFreq)
                     {
+                        Console.WriteLine("i: " + i + ", j: " + j + ", freq: " + freq);
                         nWin[i] = n;
                         winnerFreq = freq;
                         input = true;
                     }
                 }
+                Console.WriteLine("");
                 //Console.WriteLine("Frequenza ("+i+"): " + winnerFreq + input);
             }
 
