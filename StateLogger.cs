@@ -112,7 +112,7 @@ namespace SLN
 		/// Clears the logging structure, allowing the logging of a 
 		/// new iteration
 		/// </summary>
-		internal void newIteration()
+		internal void clearLog()
 		{
 			if (_isEnabledN)
 				_neuronLog.Clear();
@@ -263,7 +263,7 @@ namespace SLN
 		/// <summary>
 		/// Saves the log on a file
 		/// </summary>
-		internal void printLog()
+		internal void saveToFile()
 		{
 			if (_isEnabledN)
 			{

@@ -218,7 +218,7 @@ namespace SLN
             this.id = id;
         }
 
-        public static List<NetworkInput> GetNetworkList(int[] ids, int[] motors, int end_reward)
+        public static List<NetworkInput> CreateInputList(int[] ids, int[] motors, int end_reward)
         {
             List<NetworkInput> inputs = new List<NetworkInput>();
 

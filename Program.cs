@@ -1,13 +1,4 @@
-﻿/*
- * Compile ALWAYS with x86 option, NEVER with AnyCPU.
- * Put the DLL in the Debug/Release directory of the project
- * In the Property Pages of each C++ project set:
- * - C/C++ --> General --> Addtional Include Directories: add the DLL file directory
- * - C/C++ --> General --> Resolve #using references: add the DLL file directory
- * - C/C++ --> Optimization --> Whole program optimization: set to "No"
- * - Linker --> General --> Additional library directories: add the DLL file directory
- */
-//Strumenti -> Gestione Pacchetti Nuget -> Console Gestione di Pacchetti -> PM> Install-Package System.Threading.dll
+﻿//Strumenti -> Gestione Pacchetti Nuget -> Console Gestione di Pacchetti -> PM> Install-Package System.Threading.dll
 
 //Le scritture su file impiegano il 30% dell'esecuzione
 //verificare che la non simulazione delle sinapsi inibitorie del context
@@ -29,6 +20,9 @@ using System.Runtime.ConstrainedExecution;
 using Accord.Math;
 using System.Globalization;
 using System.IO.Ports;
+using MathWorks.MATLAB.Engine;
+using MathWorks.MATLAB.Types;
+using System.Threading.Tasks;
 
 namespace SLN
 {
@@ -41,130 +35,119 @@ namespace SLN
         /// The Main method
         /// </summary>
         /// <param name="args">Currently not used</param>
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            //Console.ReadLine();
+            string pathPc = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            string net_path = pathPc + @"\Saved_Networks\net-";
+            int n_learnings = 1;
+            bool do_test = true;
+            bool do_imagination = false;
 
-            String pathPc = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            String net_path = pathPc + @"\Saved_Networks\net-";
-            int n_learnings = 3;
-            bool do_imagination = true;
+            bool simulate_also = true;
 
 
             Network net = Network.generateNetwork();
 
 
             #region learning
-
+            //Define the four sequences
             #region prima_sequenza
-            //int[] ids = { 3, 0, 4, 1 };
-            //int[] motors = { 0, 1, 1, 1 };
-            int[] ids = { 3, 0, 4, 1};
-            int[] motors = { 0, 1, 1, 1 };
-            List<NetworkInput> prima_sequenza = NetworkInput.GetNetworkList(ids, motors, 3);
+            int[] ids = { 3, 0, 1, 4 };
+            int[] motors = { 0, 1, 0, 1 };
+            List<NetworkInput> prima_sequenza = NetworkInput.CreateInputList(ids, motors, 3);
             #endregion
-            #region prima_sequenza_2
-            //int[] ids = { 3, 0, 4, 1 };
-            //int[] motors = { 0, 1, 1, 1 };
-            ids = new int[] { 0};
-            motors = new int[] { 1};
-            List<NetworkInput> prima_sequenza_2 = NetworkInput.GetNetworkList(ids, motors, 3);
-            List<NetworkInput> prima_sequenza_3 = new List<NetworkInput>();
-            prima_sequenza_3.Add(prima_sequenza_2.Last());
-            #endregion
+
             #region seconda_sequenza
             ids = new int[] { 7, 6 };
             motors = new int[] { 1, 0 };
-            List<NetworkInput> seconda_sequenza = NetworkInput.GetNetworkList(ids, motors, 1);
+            List<NetworkInput> seconda_sequenza = NetworkInput.CreateInputList(ids, motors, 1);
 
             #endregion
 
             #region terza_sequenza
             ids = new int[] { 3, 6 };
             motors = new int[] { 1, 1 };
-            List<NetworkInput> terza_sequenza = NetworkInput.GetNetworkList(ids, motors, 1);
+            List<NetworkInput> terza_sequenza = NetworkInput.CreateInputList(ids, motors, 1);
             #endregion
 
             #region quarta_sequenza
             ids = new int[] { 7, 1 };
             motors = new int[] { 0, 0 };
-            List<NetworkInput> quarta_sequenza = NetworkInput.GetNetworkList(ids, motors, 1);
+            List<NetworkInput> quarta_sequenza = NetworkInput.CreateInputList(ids, motors, 1);
             #endregion
 
+            //Learn the four sequences
             for (int l = 0; l < n_learnings; l++)
             {
                 net.current_learning++;
                 System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Learning First Sequence*** *** *** ****** *** *** ****** *** ***");
                 SimulateInputs(net, prima_sequenza, 1);
-                System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Learning First Sequence*** *** *** ****** *** *** ****** *** ***");
-                //SimulateInputs(net, prima_sequenza_3, 1);
-                System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Learning Second Sequence*** *** *** ****** *** *** ****** *** ***");
+                //System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Learning Second Sequence*** *** *** ****** *** *** ****** *** ***");
                 //SimulateInputs(net, seconda_sequenza, 1);
-                System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Learning Third Sequence*** *** *** ****** *** *** ****** *** ***");
+                //System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Learning Third Sequence*** *** *** ****** *** *** ****** *** ***");
                 //SimulateInputs(net, terza_sequenza, 1);
-                System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Learning Fourth Sequence*** *** *** ****** *** *** ****** *** ***");
+                //System.Console.WriteLine("*** *** ****** *** *** *** *** *** *** *** Learning Fourth Sequence*** *** *** ****** *** *** ****** *** ***");
                 //SimulateInputs(net, quarta_sequenza, 1);
 
-                BinarySerialization.WriteToBinaryFile<Network>(net_path + net.current_learning + ".bin", net);
+                //BinarySerialization.WriteToBinaryFile<Network>(net_path + net.current_learning + ".bin", net);
             }
-
 
             #endregion
 
             //net = BinarySerialization.ReadFromBinaryFile<Network>(net_path + "funzionante.bin");
+            //net = BinarySerialization.ReadFromBinaryFile<Network>(net_path + "2.bin");
 
-            #region  imagination
             StateLogger sl;
             StateLogger slStdp;
-            List<NetworkInput> imagination = new List<NetworkInput>();
+            Task task_result = null;
+
+            #region  testing
+            List<NetworkInput> test_inputs = new List<NetworkInput>();
+            test_inputs.Add(new NetworkInput(3, -1, -1)); //Blue Rectangle, id 3 (next id 7)
+            test_inputs.Add(new NetworkInput(0, -1, -1));
+            test_inputs.Add(new NetworkInput(1, -1, -1));
+            test_inputs.Add(new NetworkInput(4, -1, -1));
+
+            MLApp.MLApp matlab = new MLApp.MLApp();
+            matlab.Execute(@"cd 'C:\Users\Emanuele\Desktop\Calì\liquid22-Motor Neuron\liquid1_new-Motor\liquid1\bin\x86\Release\Matlab-SNN'");
+            if (do_test)
+            {
+                Console.WriteLine("TESTING\n");
+                foreach (NetworkInput input in test_inputs)
+                {
+                    sl = new StateLogger(pathPc + @"\Dati\Neurons" + net.current_epoch + ".txt", pathPc + @"\Dati\Synapse" + net.current_epoch + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + net.current_epoch + ".txt", true, false, true);
+                    slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + net.current_epoch + ".txt", pathPc + @"\Dati\SynapseSTDP" + net.current_epoch + ".txt", false, true);
+
+                    net.resetInputs();
+                    net.setInput(input);
+
+                    Console.WriteLine("Sim started at " + DateTime.Now);
+                    net.simulateLiquid(sl, slStdp, net.current_epoch, -1, false, 0, true);
+                    if (task_result != null)
+                        await task_result;
+
+                    Console.WriteLine("Sim finished at " + DateTime.Now);
+
+                    Console.WriteLine("Generating Matlab Plot:");
+                    //task_result = PlotInput(matlab, net.current_epoch, "");
+
+                    net.current_epoch++;
+                }
+
+
+            }
+
+            #endregion
+
+
+            Environment.Exit(1);
+            List<NetworkInput> imagination_inputs = new List<NetworkInput>();
+            #region imagination
             if (do_imagination)
             {
-                sl = new StateLogger(pathPc + @"\Dati\Neurons" + net.current_epoch + ".txt", pathPc + @"\Dati\Synapse" + net.current_epoch + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + net.current_epoch + ".txt", true, false, true);
-                slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + net.current_epoch + ".txt", pathPc + @"\Dati\SynapseSTDP" + net.current_epoch + ".txt", false, true);
-                net.resetInputs();
-                net.setInput(new NetworkInput(-1, -1, -1, -1));
-
-                // net.setInput(new NetworkInput(3, -1, -1)); //Blue Rectangle, id 3
-                net.set_random_current(true);
-                Console.WriteLine("Sim started attt " + DateTime.Now);
-                net.simulateLiquid(sl, slStdp, net.current_epoch, -1, false, 0, true);
-                Console.WriteLine("Sim finished attt " + DateTime.Now);
-                net.current_epoch++;
-                net.set_random_current(false);
-
-                sl = new StateLogger(pathPc + @"\Dati\Neurons" + net.current_epoch + ".txt", pathPc + @"\Dati\Synapse" + net.current_epoch + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + net.current_epoch + ".txt", true, false, true);
-                slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + net.current_epoch + ".txt", pathPc + @"\Dati\SynapseSTDP" + net.current_epoch + ".txt", false, true);
-                net.resetInputs();
-                net.setInput(new NetworkInput(-1, -1, -1, -1));
-                //net.setInput(new NetworkInput(-1, 1, -1, -1)); //solo rettangolo
-
-                //net.setInput(new NetworkInput(0, -1, -1)); //rettangolo rosso, id 0
-                Console.WriteLine("Sim started attt " + DateTime.Now);
-                net.simulateLiquid(sl, slStdp, net.current_epoch, -1, false, 0, true);
-                Console.WriteLine("Sim finished attt " + DateTime.Now);
-                net.current_epoch++;
-
-                sl = new StateLogger(pathPc + @"\Dati\Neurons" + net.current_epoch + ".txt", pathPc + @"\Dati\Synapse" + net.current_epoch + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + net.current_epoch + ".txt", true, false, true);
-                slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + net.current_epoch + ".txt", pathPc + @"\Dati\SynapseSTDP" + net.current_epoch + ".txt", false, true);
-                net.resetInputs();
-                net.setInput(new NetworkInput(-1, -1, -1, -1));
-                Console.WriteLine("Sim started attt " + DateTime.Now);
-                net.simulateLiquid(sl, slStdp, net.current_epoch, -1, false, 0, true);
-                Console.WriteLine("Sim finished attt " + DateTime.Now);
-                net.current_epoch++;
-
-                sl = new StateLogger(pathPc + @"\Dati\Neurons" + net.current_epoch + ".txt", pathPc + @"\Dati\Synapse" + net.current_epoch + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + net.current_epoch + ".txt", true, false, true);
-                slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + net.current_epoch + ".txt", pathPc + @"\Dati\SynapseSTDP" + net.current_epoch + ".txt", false, true);
-                net.resetInputs();
-                net.setInput(new NetworkInput(-1, -1, -1, -1));
-                Console.WriteLine("Sim started attt " + DateTime.Now);
-                net.simulateLiquid(sl, slStdp, net.current_epoch, -1, false, 0, true);
-                Console.WriteLine("Sim finished attt " + DateTime.Now);
-                net.current_epoch++;
-
-
-                //SimulateInputsImagination(net, imagination);
-
+                imagination_inputs.Add(new NetworkInput(3, -1, -1));
+                imagination_inputs.Add(new NetworkInput(7, -1, -1));
+                SimulateInputsImagination(net, imagination_inputs);
             }
             #endregion
 
@@ -177,14 +160,33 @@ namespace SLN
 
             float dist_tresh = 150;
 
-            int[] lista_vincente = new int[4] { 3, 0, 1, 4 };
+            int[] lista_vincente = new int[4] { 3, 0, 4, 10};
+            //int[] lista_vincente = new int[3] { 3 };
+            int[] lista_shapes = new int[4] { 1, 1, 3, 3 };
             //int[] lista_vincente = new int[1] { 4 };
             //lista_vincente = net.winner_seq_ids;
             //int[] lista_motore = new int[1] {  1 };
             int[] lista_motore = new int[4] { 0, 1, 0, 1 };
+            //int[] lista_motore = new int[3] { 1, 0, 1 };
             //lista_motore = net.winner_seq_motors;
 
+            sl = new StateLogger(pathPc + @"\Dati\Neurons" + net.current_epoch + ".txt", pathPc + @"\Dati\Synapse" + net.current_epoch + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + net.current_epoch + ".txt", true, false, true);
+            slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + net.current_epoch + ".txt", pathPc + @"\Dati\SynapseSTDP" + net.current_epoch + ".txt", false, true);
 
+            net.resetInputs();
+            net.setInput(new NetworkInput(lista_vincente[3], -1, -1));
+
+            Console.WriteLine("Sim started at " + DateTime.Now);
+            net.simulateLiquid(sl, slStdp, net.current_epoch, -1, false, 0, true);
+
+            Console.WriteLine("Sim finished at " + DateTime.Now);
+
+            Console.WriteLine("Generating Matlab Plot:");
+
+
+
+            task_result = PlotInput(matlab, net.current_epoch, ObjectDetection.FromIdToString(lista_vincente[3]));
+            //4 zoom indietro
             int counter = 0;
             int timer = 700; //millisecondi
 
@@ -194,13 +196,34 @@ namespace SLN
             bool max;
             SerialWriter serial = new SerialWriter("COM3");
 
+            Console.ReadLine();
+            detector.GetInput();
+            for (int i = 0; i < detector.n_inputs; i++)
+                imagination_inputs.Add(new NetworkInput(detector.inputs[i], -1, -1));
+            SimulateInputsImagination(net, imagination_inputs);
+
+            /*for (int i = 0; i < net.winner_seq_ids.Length && net.winner_seq_ids[i] != -1; i++)
+                Console.WriteLine("\t\t\t" + ObjectDetection.FromIdToString(net.winner_seq_ids[i]));*/
 
 
-            /*serial.GoForward(true);
-            Thread.Sleep(20000);
-            serial.Stop(true);*/
+            sl = new StateLogger(pathPc + @"\Dati\Neurons" + net.current_epoch + ".txt", pathPc + @"\Dati\Synapse" + net.current_epoch + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + net.current_epoch + ".txt", true, false, true);
+            slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + net.current_epoch + ".txt", pathPc + @"\Dati\SynapseSTDP" + net.current_epoch + ".txt", false, true);
 
-            while (false)
+            net.resetInputs();
+            net.setInput(new NetworkInput(net.winner_seq_ids[0], -1, -1));
+
+            Console.WriteLine("Sim started at " + DateTime.Now);
+            net.simulateLiquid(sl, slStdp, net.current_epoch, -1, false, 0, true);
+
+            Console.WriteLine("Sim finished at " + DateTime.Now);
+
+            Console.WriteLine("Generating Matlab Plot:");
+
+            task_result = PlotInput(matlab, net.current_epoch, ObjectDetection.FromIdToString(net.winner_seq_ids[0]));
+            net.current_epoch++;
+           // Console.ReadLine();
+
+            while (true)
             {
 
 
@@ -216,6 +239,7 @@ namespace SLN
                         //Controlla la distanza dal target
                         //Console.WriteLine("Distance from target " + detector.inputs[i] + ": " + detector.distances[i] + " cm");
                         Console.WriteLine("Distance from " + ObjectDetection.FromIdToString(detector.inputs[i]) + "(target " + detector.inputs[i] + "): " + detector.distances[i] + " cm");
+                        //if ((detector.inputs[i] == lista_vincente[counter] || ObjectDetection.FromIdToFeatures(detector.inputs[i])[1] == lista_shapes[counter]) && detector.distances[i] < dist_tresh)
                         if (detector.inputs[i] == lista_vincente[counter] && detector.distances[i] < dist_tresh)
                         {
                             esci = true;
@@ -321,15 +345,47 @@ namespace SLN
                     if (esci)
                         break;
                 }
-
-                //fermati
                 serial.Stop(true);
+                if (task_result != null)
+                    await task_result;
+                //fermati
+                if (simulate_also)
+                {
+                    sl = new StateLogger(pathPc + @"\Dati\Neurons" + net.current_epoch + ".txt", pathPc + @"\Dati\Synapse" + net.current_epoch + ".txt", pathPc + @"\Dati\NeuronMorrisLecar" + net.current_epoch + ".txt", true, false, true);
+                    slStdp = new StateLogger(pathPc + @"\Dati\NeuronsStdp" + net.current_epoch + ".txt", pathPc + @"\Dati\SynapseSTDP" + net.current_epoch + ".txt", false, true);
+
+                    net.resetInputs();
+                    net.setInput(new NetworkInput(lista_vincente[counter + 1], -1, -1));
+
+                    Console.WriteLine("Sim started at " + DateTime.Now);
+                    net.simulateLiquid(sl, slStdp, net.current_epoch, -1, false, 0, true);
+
+                    Console.WriteLine("Sim finished at " + DateTime.Now);
+
+                    Console.WriteLine("Generating Matlab Plot:");
+
+
+
+                    task_result = PlotInput(matlab, net.current_epoch, ObjectDetection.FromIdToString(lista_vincente[counter + 1]));
+                    net.current_epoch++;
+
+                }
                 counter++;
             }
 
 
         }
 
+        public static async Task PlotInput(MLApp.MLApp matlab, int epoch, string title)
+        {
+            await Task.Run(() =>
+            {
+
+                object result = null;
+                matlab.Feval("PlotInputLayer", 0, out result, epoch, title);
+
+            });
+        }
 
         public static void SimulateInputs(Network net, List<NetworkInput> inputs, int learn)
         {

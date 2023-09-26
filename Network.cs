@@ -42,11 +42,11 @@ namespace SLN
         private LinkedList<LinkedList<SynapseProportional>> _samenessToFirst;
 
         // Layers
-        private Layers _layers;
+        private InputLayer _inputLayer;
 
         public void set_random_current(bool value)
         {
-            _layers.random = value;
+            _inputLayer.random = value;
         }
 
         private LiquidState _liquid;
@@ -141,10 +141,10 @@ namespace SLN
         {
             current_epoch = 0;
             current_learning = -1;
-            _layers = new Layers();
+            _inputLayer = new InputLayer();
             _liquid = new LiquidState();
             _outExt = new OutputLayerExternal();
-            _context = new ContextLayer(_outExt, _layers);
+            _context = new ContextLayer(_outExt, _inputLayer);
             _context.addPath(_outExt.getNeuronMorris(0));
 
             _firstToFirst1 = new LinkedList<Synapse>();
@@ -194,7 +194,7 @@ namespace SLN
             {
                 for (int j1 = 0; j1 < Constants.FIRST_LAYER_DIMENSION_J; j1++)
                 {
-                    Neuron start1 = _layers.getFirstLayerNeuron1(i1, j1);
+                    Neuron start1 = _inputLayer.getFirstLayerNeuron1(i1, j1);
 
                     for (int i2 = 0; i2 < Constants.LIQUID_DIMENSION_I; i2++)
                     {
@@ -286,7 +286,7 @@ namespace SLN
 
                     if (layer == (int)LayerNumbers.FirstLayer_1)
                     {
-                        start = _layers.getFirstLayerNeuron1(stRow, stCol);
+                        start = _inputLayer.getFirstLayerNeuron1(stRow, stCol);
                         dest = _liquid.getLiquidLayerNeuron(deRow, deCol);
                         Synapse syn = new Synapse(start,
                                     dest,
@@ -313,12 +313,12 @@ namespace SLN
             for (int i1 = 0; i1 < Constants.FIRST_LAYER_DIMENSION_I; i1++) // Feature
                 for (int j1 = 0; j1 < Constants.FIRST_LAYER_DIMENSION_J; j1++) // Value
                 {
-                    Neuron start = _layers.getFirstLayerNeuron1(i1, j1);
+                    Neuron start = _inputLayer.getFirstLayerNeuron1(i1, j1);
                     for (int i2 = 0; i2 < Constants.FIRST_LAYER_DIMENSION_I; i2++)
                         for (int j2 = 0; j2 < Constants.FIRST_LAYER_DIMENSION_J; j2++)
                         {
                             double w;
-                            Neuron dest = _layers.getFirstLayerNeuron1(i2, j2);
+                            Neuron dest = _inputLayer.getFirstLayerNeuron1(i2, j2);
 
                             /*
 							if (i1 == i2 && j1 == j2) 
@@ -878,7 +878,7 @@ namespace SLN
             countInput.Add(input);
 
             currentInput = input;
-            _layers.setInput(input);
+            _inputLayer.setInput(input);
             //_liquid.setInput(input);
             _endSequenceReward = input.END;
             _levelReward = input.REWARDLEVEL;
@@ -893,7 +893,7 @@ namespace SLN
         /// </summary>
         public void resetInputs()
         {
-            _layers.resetInputs();
+            _inputLayer.resetInputs();
             //_liquid.resetInputs();
             _endSequenceReward = false;
         }
@@ -913,6 +913,7 @@ namespace SLN
             //inizialmente simNumberInternal = -1, Option = 0, signedtarget=0
             String targetS;
 
+            //A simulation can include inside more simulations, in the case the target is not learned.
             if (simNumberInternal == -1)
                 targetS = "target" + simNumber + ".txt";
             else
@@ -923,14 +924,11 @@ namespace SLN
             double errorMean = 0;
             bool integration = false;
 
-            //signedTarget = 1;
-
-            //resettiamo i log
+            //Clear the logs
             if (log != null)
-                log.newIteration();
-
+                log.clearLog();
             if (logSTDP != null)
-                logSTDP.newIteration();
+                logSTDP.clearLog();
 
 
             //Caso di Pseudo-inversa Classica
@@ -947,19 +945,22 @@ namespace SLN
                 //_liquid.Option = -1;
             }
 
-            if (simNumberInternal == -1 || (_liquid.Option == 5 && simNumberInternal <= 2))      //io devo entrare sempre in questa if se sto eseguendo le simulazioni con input rumoroso per la pseudoinversa 
+            if (simNumberInternal == -1 || (_liquid.Option == 5 && simNumberInternal <= 2))     
             {
+                // Simulo solamente l'Input Layer (fase feedforward). 
+                // Alla fine di essa estraggo i neuroni vincitori.
+                // Do una certa corrente solo ai neuroni del liquido collegati direttamente con i vincitori.
                 for (int step = 0; step < Constants.SIMULATION_STEPS_FEEDFORWARD; step++)
                 {
-                    if (log != null && (step % Constants.LOGGING_RATE) == 0)
+                    if (log != null && (step % Constants.LOGGING_RATE) == 0) //si potrebbe far fare il modulo alla classe log
                     {
-                        log.printLog();
-                        log.newIteration();
+                        log.saveToFile();
+                        log.clearLog();
                     }
                     if (logSTDP != null && (step % Constants.LOGGING_RATE) == 0)
                     {
-                        logSTDP.printLog();
-                        logSTDP.newIteration();
+                        logSTDP.saveToFile();
+                        logSTDP.clearLog();
                     }
 
                     foreach (Synapse s in _firstToFirst1)
@@ -976,7 +977,7 @@ namespace SLN
                             logSTDP.logSynapse(s, step);
                     }
 
-                    _layers.simulateFirst1(step, log);
+                    _inputLayer.simulateFirst1(step, log);
 
                     //non ci sono connessione sameness to first inizialmente
                     foreach (LinkedList<SynapseProportional> s1 in _samenessToFirst)
@@ -989,20 +990,20 @@ namespace SLN
 
                 if (log != null)
                 {
-                    log.printLog();
-                    log.newIteration();
+                    log.saveToFile();
+                    log.clearLog();
                 }
                 if (logSTDP != null)
                 {
-                    logSTDP.printLog();
-                    logSTDP.newIteration();
+                    logSTDP.saveToFile();
+                    logSTDP.clearLog();
                 }
 
 
 
                 //lista contenente un neurone vincitore per ogni feature. Ci possono essere
                 //valori non inizializzati.
-                winnerFirst = _layers.getWinnerFirstActive(Constants.SIMULATION_STEPS_FEEDFORWARD);
+                winnerFirst = _inputLayer.getWinnerFirstActive(Constants.SIMULATION_STEPS_FEEDFORWARD);
 
                 _liquid.resetActive();
                 StreamWriter input_active = new StreamWriter(pathPc + @"\Dati\Input_active_" + simNumber + ".txt");
@@ -1064,20 +1065,7 @@ namespace SLN
                             {
                                 Class1Neuron n = (Class1Neuron)s.Dest;
 
-                                //Prima versione in cui la corrente della Liquid si setta al valore diverso dal Default
-                                //if (n1.ROW == 0 && n1.COLUMN == currentInput.COLOR)
-                                //    if (n.Active == false || currentInput.COLORVALUE < n.INPUTCURRENT || (currentInput.COLORVALUE != Constants.DEFAULT_CURRENT_LIQUID && currentInput.COLORVALUE > n.INPUTCURRENT))   //così do al neurone della liquid la corrente non di default anche se ha più inputs
-                                //        n.INPUTCURRENT = currentInput.COLORVALUE;
-                                //if (n1.ROW == 1 && n1.COLUMN == currentInput.SIZE)
-                                //    if (n.Active == false || currentInput.SIZEVALUE < n.INPUTCURRENT || (currentInput.SIZEVALUE != Constants.DEFAULT_CURRENT_LIQUID && currentInput.SIZEVALUE > n.INPUTCURRENT))
-                                //        n.INPUTCURRENT = currentInput.SIZEVALUE;
-                                //if (n1.ROW == 2 && n1.COLUMN == currentInput.HDISTR)
-                                //    if (n.Active == false || currentInput.HDISTRVALUE < n.INPUTCURRENT || (currentInput.HDISTRVALUE != Constants.DEFAULT_CURRENT_LIQUID && currentInput.HDISTRVALUE > n.INPUTCURRENT))
-                                //        n.INPUTCURRENT = currentInput.HDISTRVALUE;
-                                //if (n1.ROW == 3 && n1.COLUMN == currentInput.VDISTR)
-                                //    if (n.Active == false || currentInput.VDISTRVALUE < n.INPUTCURRENT || (currentInput.VDISTRVALUE != Constants.DEFAULT_CURRENT_LIQUID && currentInput.VDISTRVALUE > n.INPUTCURRENT))
-                                //        n.INPUTCURRENT = currentInput.VDISTRVALUE;
-
+                                //Si setta la corrente del neurone del liquido
                                 if (!persistance)
                                 {
                                     //Seconda versione in cui arriva la corrente nei neuroni della Liquid come somma degli ingressi dagli AL
@@ -1130,65 +1118,28 @@ namespace SLN
                 input_active.Close();
                 currentInputOld = currentInput;
 
-                _layers.resetNeuronsState();
+                _inputLayer.resetNeuronsState();
 
 
                 for (int step = Constants.SIMULATION_STEPS_FEEDFORWARD; step < Constants.SIMULATION_STEPS_LIQUID + Constants.SIMULATION_STEPS_FEEDFORWARD; step++)
                 {
                     if (step == 300)
-                        _layers.random = false;
+                        _inputLayer.random = false;
                     if (log != null && (step % Constants.LOGGING_RATE) == 0)
                     {
-                        log.printLog();
-                        log.newIteration();
+                        log.saveToFile();
+                        log.clearLog();
                     }
                     if (logSTDP != null && (step % Constants.LOGGING_RATE) == 0)
                     {
-                        logSTDP.printLog();
-                        logSTDP.newIteration();
+                        logSTDP.saveToFile();
+                        logSTDP.clearLog();
                     }
                     //with target spiking
                     //_ntarget.I = (signedTarget + 1) * 10;
                     //_ntarget.simulate(step);
 
-                    foreach (Synapse s in _firstToFirst1)
-                    {
-                        s.simulate(step);
-                        if (log != null)
-                            log.logSynapse(s, step);
-                    }
-
-                    foreach (Synapse s in _firstToFirstSTDP)
-                    {
-                        s.simulate(step);
-                        if (log != null)
-                            logSTDP.logSynapse(s, step);
-                    }
-
-                    _layers.simulateFirst1(step, log);
-
-                    //integration=true se si sono attivati gli stessi neuroni nel layer di input
-                    if (step == 2 * Constants.SIMULATION_STEPS_FEEDFORWARD)
-                    {
-                        winnerFirstA = _layers.getWinnerFirstActive(2 * Constants.SIMULATION_STEPS_FEEDFORWARD);
-                        for (int i = 0; i < Constants.FIRST_LAYER_DIMENSION_I; i++)
-                            if (winnerFirst != null && winnerFirstA != null && winnerFirstA[i] != null && winnerFirst[i] != null && winnerFirst[i].COLUMN == winnerFirstA[i].COLUMN)
-                                integration = true;
-                            else
-                            {
-                                integration = false;
-                                break;
-                            }
-
-                    }
-
-                    target = (double)Math.Sin(((step - Constants.SIMULATION_STEPS_FEEDFORWARD) * 2 * Math.PI * ((Constants.start_freq + target * Constants.incr_freq) * 0.001)) / Constants.INTEGRATION_STEP_MORRIS_LECAR) / 100;
-                    ////Da mettere se vogliamo squadrare la sinusoide
-                    //if (target > 0)
-                    //    target = value;
-                    //else
-                    //    target = -value;
-
+                   
                     foreach (Synapse s in _firstToFirst1)
                     {
                         s.simulate(step);
@@ -1203,6 +1154,25 @@ namespace SLN
                         //    logSTDP.logSynapse(s, step);
                     }
 
+                    _inputLayer.simulateFirst1(step, log);
+
+                    //integration=true se si sono attivati gli stessi neuroni nel layer di input
+                    if (step == 2 * Constants.SIMULATION_STEPS_FEEDFORWARD)
+                    {
+                        winnerFirstA = _inputLayer.getWinnerFirstActive(2 * Constants.SIMULATION_STEPS_FEEDFORWARD);
+                        for (int i = 0; i < Constants.FIRST_LAYER_DIMENSION_I; i++)
+                            if (winnerFirst != null && winnerFirstA != null && winnerFirstA[i] != null && winnerFirst[i] != null && winnerFirst[i].COLUMN == winnerFirstA[i].COLUMN)
+                                integration = true;
+                            else
+                            {
+                                integration = false;
+                                break;
+                            }
+
+                    }
+
+                    target = (double)Math.Sin(((step - Constants.SIMULATION_STEPS_FEEDFORWARD) * 2 * Math.PI * ((Constants.start_freq + target * Constants.incr_freq) * 0.001)) / Constants.INTEGRATION_STEP_MORRIS_LECAR) / 100;
+                    
                     foreach (Synapse s in _liquidToLiquid)
                     {
                         s.simulate(step);
@@ -1225,7 +1195,7 @@ namespace SLN
                         }
                     //error è l'ultimo errore calcolato, era voluto tralasciare quelli precedenti?
                     errorMean += Math.Abs(error); //non è una media
-                    _layers.simulateFirst1(step, log);
+                    _inputLayer.simulateFirst1(step, log);
                     _liquid.simulate(step, log, simNumber);
                     _outExt.simulate(step, log, simNumberInternal, integration);
                     _context.simulate(step, log, logSTDP, simNumber, simNumberInternal, _endSequenceReward, test, _levelReward, _motor);
@@ -1241,13 +1211,13 @@ namespace SLN
 
                 if (log != null)
                 {
-                    log.printLog();
-                    log.newIteration();
+                    log.saveToFile();
+                    log.clearLog();
                 }
                 if (logSTDP != null)
                 {
-                    logSTDP.printLog();
-                    logSTDP.newIteration();
+                    logSTDP.saveToFile();
+                    logSTDP.clearLog();
                 }
                 //aggiornamento a epoche
                 if (!test)
@@ -1255,7 +1225,7 @@ namespace SLN
                     foreach (SynapseSTDP s in _firstToFirstSTDP)
                     {
                         s.learn(0, 0);
-                        Console.WriteLine(s._W);
+                        //Console.WriteLine(s._W);
                         if (log != null)
                             logSTDP.logSynapse(s, Constants.SIMULATION_STEPS_LIQUID + Constants.SIMULATION_STEPS_FEEDFORWARD + 1);
 
@@ -1288,13 +1258,13 @@ namespace SLN
                 {
                     if (log != null && (step % Constants.LOGGING_RATE) == 0)
                     {
-                        log.printLog();
-                        log.newIteration();
+                        log.saveToFile();
+                        log.clearLog();
                     }
                     if (logSTDP != null && (step % Constants.LOGGING_RATE) == 0)
                     {
-                        logSTDP.printLog();
-                        logSTDP.newIteration();
+                        logSTDP.saveToFile();
+                        logSTDP.clearLog();
                     }
 
                     foreach (Synapse s in _firstToFirst1)
@@ -1311,7 +1281,7 @@ namespace SLN
                             logSTDP.logSynapse(s, step);
                     }
 
-                    _layers.simulateFirst1(step, log);
+                    _inputLayer.simulateFirst1(step, log);
                     //with target spiking
                     //_ntarget.I = (signedTarget + 1) * 10;
                     //_ntarget.simulate(step);
@@ -1354,13 +1324,13 @@ namespace SLN
 
                 if (log != null)
                 {
-                    log.printLog();
-                    log.newIteration();
+                    log.saveToFile();
+                    log.clearLog();
                 }
                 if (logSTDP != null)
                 {
-                    logSTDP.printLog();
-                    logSTDP.newIteration();
+                    logSTDP.saveToFile();
+                    logSTDP.clearLog();
                 }
 
                 //aggiornamento a epoche
@@ -1420,7 +1390,7 @@ namespace SLN
                     frequencyRewardSequence = _context.getFrequencyEndSequence(Constants.SIMULATION_STEPS_FEEDFORWARD + Constants.SIMULATION_STEPS_LIQUID);
                     //reset of all neuron 
                     _liquid.resetState();
-                    _layers.resetNeuronsState();
+                    _inputLayer.resetNeuronsState();
                     if (!test)
                         _context.learn(logSTDP, Constants.SIMULATION_STEPS_LIQUID + Constants.SIMULATION_STEPS_FEEDFORWARD - 1, _endSequenceReward, _motor);
                     _context.winContextOld = _context.getWinnerContext(Constants.SIMULATION_STEPS_LIQUID + Constants.SIMULATION_STEPS_FEEDFORWARD - 1, 1);
@@ -1455,30 +1425,36 @@ namespace SLN
                 //reset of all neuron 
                 _liquid.resetState();
 
-                _layers.resetNeuronsState();
+                _inputLayer.resetNeuronsState();
             }
 
 
             if (log != null)
-                log.printLog();
+                log.saveToFile();
             if (logSTDP != null)
-                logSTDP.printLog();
+                logSTDP.saveToFile();
 
             if (log != null)
             {
                 log.closeLog();
-                log.newIteration();
+                log.clearLog();
             }
             if (logSTDP != null)
             {
                 logSTDP.closeLog();
-                logSTDP.newIteration();
+                logSTDP.clearLog();
             }
             countInput.Clear();
 
-            Console.WriteLine("\t\t\t\t\t\t\t\tMorris Lecar Winner new: " + indexWinOut);
-            Console.WriteLine("\t\t\t\t\t\t\t\tEnd Neuron Winner Frequency new: " + frequencyRewardSequence);
-            Console.WriteLine("\t\t\t\t\t\t\t\tMotor Neuron Winner new: " + feat[feat.Length - 1] + "\n\n");
+            if (test)
+            {
+                if (indexWinOut != -1)
+                    Console.WriteLine("\t\t\t\t\t\t\t\tMorris Lecar Winner: " + indexWinOut + " (" + ObjectDetection.FromIdToString(morris_ids[indexWinOut]).Replace(" ", "") + ")");
+                else
+                    Console.WriteLine("\t\t\t\t\t\t\t\tMorris Lecar Winner: " + indexWinOut);
+                Console.WriteLine("\t\t\t\t\t\t\t\tEnd Neuron Winner Frequency: " + frequencyRewardSequence);
+                Console.WriteLine("\t\t\t\t\t\t\t\tMotor Neuron Winner: " + feat[feat.Length - 1] + "\n\n");
+            }
             //return (errorMean / Constants.SIMULATION_STEPS_LIQUID);
             return indexWinOut;
 
@@ -1753,12 +1729,12 @@ namespace SLN
                             setInput(new NetworkInput(-1, -1, -1, -1));
                         }
                         this.simulateLiquid(null, null, simNumber + i, -1, false, 0, true);
-                        if (indexWinOut != -1)
+                        /*if (indexWinOut != -1)
                             Console.WriteLine("\t\t\t\t\t\t\t\tMorris Lecar Winner: " + indexWinOut + " (" + ObjectDetection.FromIdToString(morris_ids[indexWinOut]).Replace(" ", "") + ")");
                         else
                             Console.WriteLine("\t\t\t\t\t\t\t\tMorris Lecar Winner: " + indexWinOut);
                         Console.WriteLine("\t\t\t\t\t\t\t\tEnd Neuron Winner Frequency: " + frequencyRewardSequence);
-                        Console.WriteLine("\t\t\t\t\t\t\t\tMotor Neuron Winner: " + feat[feat.Length - 1] + "\n\n");
+                        Console.WriteLine("\t\t\t\t\t\t\t\tMotor Neuron Winner: " + feat[feat.Length - 1] + "\n\n");*/
 
                         if (indexWinOut == -1)
                         {

@@ -39,7 +39,7 @@ namespace SLN
         LinkedList<SynapseSTDP> _ringToOtherRingSTDP;
         LinkedList<Synapse> _ringToOtherRing;
         OutputLayerExternal outlayer;
-        Layers inputlayer;
+        InputLayer inputlayer;
         AltNeuron[] _endSequenceNeurons;
         AltNeuron[] _motorNeurons;
         LinkedList<SynapseSTDP> _contextToEndSequence;
@@ -53,14 +53,14 @@ namespace SLN
         /// <summary>
         /// Constructor
         /// </summary>
-        internal ContextLayer(OutputLayerExternal o, Layers l)
+        internal ContextLayer(OutputLayerExternal o, InputLayer l)
         {
 
             this.init(o, l);
 
         }
 
-        private void init(OutputLayerExternal o, Layers l)
+        private void init(OutputLayerExternal o, InputLayer l)
         {
             t = -1;
             count_id = -1;

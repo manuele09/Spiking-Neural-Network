@@ -830,13 +830,18 @@
 
         /// <summary>
         /// Selected option for the updating rules of the Liquid-layer to output neurons synapses
+        /// case -1: ------
         /// case 0: // campioni classico				 
-        /// case 1: // campioni EPOCHE		
+        /// case 1: // campioni EPOCHE	-----	?
         /// case 2: // campioni segno d'errore
-        /// case 3 : // pseudo inversa
-        /// case 4: // segno d'errore EPOCHE
+        /// case 3 : // pseudo inversa ----- ---
+        /// case 4: // segno d'errore EPOCHE -----?
+        /// case 5: //pseudo inversa con rumore
         /// </summary>
         public const int LIQUID_TO_OUT_OPTION = 0;
+
+        //case 3: setWLiquidToOutput, option->-1
+        //case 5: setWLiquidToOutput
 
         /// <summary>
         /// Selected error threshold for Liquid-layer to output neurons synapses

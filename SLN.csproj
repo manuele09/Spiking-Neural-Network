@@ -120,6 +120,12 @@
     <Reference Include="CSML">
       <HintPath>bin\x86\Release\CSML.dll</HintPath>
     </Reference>
+    <Reference Include="MathWorks.MATLAB.Engine">
+      <HintPath>..\..\..\..\..\..\..\Program Files\MATLAB\R2023a\extern\dotnet\netstandard2.0\MathWorks.MATLAB.Engine.dll</HintPath>
+    </Reference>
+    <Reference Include="MathWorks.MATLAB.Types">
+      <HintPath>..\..\..\..\..\..\..\Program Files\MATLAB\R2023a\extern\dotnet\netstandard2.0\MathWorks.MATLAB.Types.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="System" />
     <Reference Include="System.Threading, Version=1.0.2856.102, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -137,10 +143,11 @@
     <Compile Include="FeedbackSynapses.cs" />
     <Compile Include="InhNeuron.cs" />
     <Compile Include="LayerNumbers.cs" />
-    <Compile Include="Layers.cs" />
+    <Compile Include="InputLayer.cs" />
     <Compile Include="LiquidState.cs" />
     <Compile Include="Network.cs" />
     <Compile Include="NetworkInput.cs" />
+    <Compile Include="ProgramMatlab.cs" />
     <Compile Include="SerialWriter.cs" />
     <Compile Include="ObjectDetection.cs" />
     <Compile Include="Neuron.cs" />
@@ -191,6 +198,17 @@
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="MLApp">
+      <Guid>{C36E46AB-6A81-457B-9F91-A7719A06287F}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
   </ItemGroup>
   <Import Project="packages\Accord.3.8.0\build\Accord.targets" Condition="Exists('packages\Accord.3.8.0\build\Accord.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

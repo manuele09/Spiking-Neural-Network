@@ -26,7 +26,7 @@ namespace SLN
     /// </list>
     /// </summary>
     [Serializable]
-    internal class Layers
+    internal class InputLayer
     {
         private Neuron[,] _firstLayer1;
         public bool[,] _inputs1;
@@ -35,7 +35,7 @@ namespace SLN
         /// <summary>
         /// Constructor
         /// </summary>
-        internal Layers()
+        internal InputLayer()
         {
             _firstLayer1 = new Neuron[
                 Constants.FIRST_LAYER_DIMENSION_I,
@@ -182,7 +182,7 @@ namespace SLN
                     double freq = n.getFrequency(lastTimestamp);
                     if (freq > winnerFreq)
                     {
-                        Console.WriteLine("i: " + i + ", j: " + j + ", freq: " + freq);
+                        //Console.WriteLine("i: " + i + ", j: " + j + ", freq: " + freq);
                         nWin[i] = n;
                         winnerFreq = freq;
                         input = true;

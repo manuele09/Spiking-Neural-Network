@@ -17,6 +17,8 @@ namespace SLN
         string distance_path;
 
         public int[] inputs = new int[2]; //di default massimo 2 input
+        public int[] colors = new int[2]; //di default massimo 2 input
+        public int[] shapes = new int[2]; //di default massimo 2 input
         public float[] centers = new float[2]; //di default massimo 2 input
         public float[] distances = new float[2]; //di default massimo 2 input
         public int n_inputs;
@@ -96,6 +98,8 @@ namespace SLN
 
         }
 
+       
+
         public void ResetVars()
         {
             n_inputs = 0;
@@ -162,6 +166,16 @@ namespace SLN
                 features[0] = 0;
                 features[1] = 2;
             }
+            if (id == 9) //rettangolo
+            {
+                features[0] = -1;
+                features[1] = 1;
+            }
+            if (id == 9) //cerchio
+            {
+                features[0] = -1;
+                features[1] = 3;
+            }
 
             return features;
 
@@ -189,6 +203,11 @@ namespace SLN
                 return "Yellow Circle ";
             if (id == 8) //triangolo giallo
                 return "Yellow Triangle ";
+
+            if (id == 9) //rettangolo
+                return "No Color Rectangle ";
+            if (id == 10) //cerchio
+                return "No Color Circle ";
 
             return "Null Input";
 
